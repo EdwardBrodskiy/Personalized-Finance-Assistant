@@ -1,9 +1,9 @@
 import csv
 import pandas as pd
 import numpy as np
+from structures import mp
 
 
-mp = {'Date': 0, 'Type': 1, 'Description': 2, 'Value': 3, 'Balance': 4, 'Account Name': 5, 'Account Number': 6}
 
 existence_keys = {
     'TVLICENSING.CO.UK': 'TV Licensing',
@@ -20,7 +20,7 @@ existence_keys = {
 def main():
     classifier = Classifier()
     for year in range(2019, 2023):
-        with open(f'data/{year}.csv') as file:
+        with open(f'input/{year}.csv') as file:
             reader = csv.reader(file)
 
             for row in reader:
