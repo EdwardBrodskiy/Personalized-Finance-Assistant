@@ -5,6 +5,7 @@ from structures import mp
 import logging
 from database import DataBase
 
+
 def main():
     index()
 
@@ -33,29 +34,24 @@ def get_items_from_input():
 
 
 def find_new(df1, df2):
-    return df1[~df1.apply(tuple,1).isin(df2.apply(tuple,1))]
+    return df1[~df1.apply(tuple, 1).isin(df2.apply(tuple, 1))]
 
 
 def index():
     incoming_table = get_items_from_input()
-    print(incoming_table.info())
-    print(incoming_table.head())
     current_table = DataBase.get_database()
-    print(current_table.info())
-    print(current_table.head())
-
-    print('\n##################\n')
 
     new = find_new(incoming_table, current_table)
 
-    print(new)
+    logging.info(f'\nFound these new entries:\n{new}')
 
-    print(pd.concat([current_table, new], ignore_index=True))
+    DataBase.add_to_database(new)
 
 
 if __name__ == '__main__':
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 300)
-    logging.basicConfig(filename='logs/indexer.log', filemode='w',
+    logging.basicConfig(filename='logs/indexer.log', filemode='a',
                         format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+    logging.info('\n\n### RUNNING indexer.py ###\n')
     main()
