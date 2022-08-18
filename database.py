@@ -1,11 +1,13 @@
 import pandas as pd
 import logging
+from structures import database_types
 
 
 class DataBase:
     @staticmethod
     def get_database():
-        return pd.read_csv('database/all.csv', index_col='key')
+        database = pd.read_csv('database/all.csv', index_col='key')
+        return database.astype(database_types)
 
     @staticmethod
     def add_to_database(new_items: pd.DataFrame):

@@ -1,7 +1,7 @@
 import csv
 import pandas as pd
 import numpy as np
-from structures import mp
+from structures import mp, database_types
 import logging
 from database import DataBase
 
@@ -26,8 +26,9 @@ def get_items_from_input():
             break
 
     items_table = pd.DataFrame(data=all_items, columns=list(mp.keys()))
-    items_table['Value'] = items_table['Value'].astype(np.float64)
-    items_table['Balance'] = items_table['Balance'].astype(np.float64)
+    items_table['Date'] = pd.to_datetime(items_table['Date'], dayfirst=True)
+    items_table = items_table.astype(database_types)
+
     items_table = items_table.replace(r'^\s*$', np.nan, regex=True)
     items_table.index.name = 'key'
     return items_table
@@ -40,6 +41,7 @@ def find_new(df1, df2):
 def index():
     incoming_table = get_items_from_input()
     current_table = DataBase.get_database()
+
 
     new = find_new(incoming_table, current_table)
 
