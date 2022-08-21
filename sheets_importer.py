@@ -23,8 +23,8 @@ def main():
     ingest['ref2'] = ingest.index
 
     print(f'Labeled entries: {len(ingest)}')
-
-    database = DataBase.get_database()
+    db = DataBase()
+    database = db.get_database()
 
     database['ref'] = database.index
 
@@ -45,8 +45,7 @@ def main():
     dups = good[good['ref2'].isin(good[dups]['ref2'])]
     dups = dups.sort_values('ref2')[['ref', 'ref2']]
 
-
-    preserved_left, preserved_right = set() , set()
+    preserved_left, preserved_right = set(), set()
     to_remove = []
     for index, row in dups.iterrows():
         ref = row['ref']
@@ -59,7 +58,7 @@ def main():
 
     good = good.drop(index=to_remove)
 
-    labeled_cols = ['Date', 'Who', 'ref', 'What', 'Description', 'Amount', 'Sub Account', 'ref2']
+    labeled_cols = ['ref', 'Who', 'What', 'Description', 'Amount', 'Sub Account']
     good = good[labeled_cols]
 
     # extract left and right orphans
@@ -84,10 +83,9 @@ def main():
 
     final = pd.concat([good, loose_good], ignore_index=True)
     print(f'Final entries: {len(final)}')
-    dups = final[final.duplicated(subset=['ref2'])]
-    print(dups)
-    print(database[database['Date'].isin(dups['Date']) & database['Description'].str.contains('TRAVEL')])
-    final.to_csv('database/merged.csv')
+    final['ref'] = final['ref'].astype(np.int64)
+    print(final)
+    db.add_to_merged(final)
 
     # extract left and right orphans again
 

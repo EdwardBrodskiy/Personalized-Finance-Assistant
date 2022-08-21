@@ -18,7 +18,7 @@ def get_items_from_input():
 
                 reader = csv.reader(file)
 
-                for index, row in enumerate(reader):
+                for i, row in enumerate(reader):
                     if len(row) == len(mp) + 1:
                         all_items.append(row[:-1])
         except FileNotFoundError:
@@ -30,6 +30,7 @@ def get_items_from_input():
     items_table = items_table.astype(database_types)
 
     items_table = items_table.replace(r'^\s*$', np.nan, regex=True)
+    items_table['ref'] = items_table.index
     items_table.index.name = 'key'
     return items_table
 
@@ -40,14 +41,14 @@ def find_new(df1, df2):
 
 def index():
     incoming_table = get_items_from_input()
-    current_table = DataBase.get_database()
-
+    db = DataBase()
+    current_table = db.get_database()
 
     new = find_new(incoming_table, current_table)
 
     logging.info(f'\nFound these new entries:\n{new}')
 
-    DataBase.add_to_database(new)
+    db.add_to_database(new)
 
 
 if __name__ == '__main__':
