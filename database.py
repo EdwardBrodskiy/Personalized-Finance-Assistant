@@ -18,8 +18,8 @@ class DataBase:
         return database.astype(database_types)
 
     def get_merged(self):
-        database = pd.read_csv(f'{self.__path}/merged.csv', index_col='key')
-        return database.astype(merged_types)
+        merged = pd.read_csv(f'{self.__path}/merged.csv', index_col='key')
+        return merged.astype(merged_types)
 
     def add_to_database(self, new_items: pd.DataFrame):
         old_items = self.get_database()

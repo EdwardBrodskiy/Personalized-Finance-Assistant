@@ -3,8 +3,6 @@ import numpy as np
 from database import DataBase
 from other import sep
 
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 300)
 
 
 def main():
@@ -97,4 +95,6 @@ def main():
 
 
 if __name__ == '__main__':
+    pd.set_option('display.max_columns', 500)
+    pd.set_option('display.width', 300)
     main()
