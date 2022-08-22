@@ -9,7 +9,8 @@ database_types = {
     'Value': np.float64,
     'Balance': np.float64,
     'Account Name': 'string',
-    'Account Number': 'string'
+    'Account Number': 'string',
+    'ref': np.int64
 }
 
 merged_types = {

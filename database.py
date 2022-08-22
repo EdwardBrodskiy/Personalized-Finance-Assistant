@@ -15,6 +15,7 @@ class DataBase:
 
     def get_database(self):
         database = pd.read_csv(f'{self.__path}/all.csv', index_col='key')
+        database['ref'] = database.index
         return database.astype(database_types)
 
     def get_merged(self):
@@ -23,6 +24,10 @@ class DataBase:
 
     def add_to_database(self, new_items: pd.DataFrame):
         old_items = self.get_database()
+
+        old_items = old_items.drop('ref', axis=1)
+        new_items = new_items.drop('ref', axis=1)
+
         self._add_new_items(old_items, new_items, 'all')
 
     def add_to_merged(self, new_items: pd.DataFrame):

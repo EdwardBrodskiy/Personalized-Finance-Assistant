@@ -1,14 +1,11 @@
-import json
 
-with open('classification_data/certain_existence.json') as file:
-    existence_keys = json.load(file)
+from database import DataBase
 
-new = {}
 
-for key, value in existence_keys.items():
-    if value not in new:
-        new[value] = []
-    new[value].append(key)
+db = DataBase()
 
-with open('classification_data/certain_existencet.json', 'w+') as file:
-    json.dump(new, file)
+df = db.get_database()
+
+print(df['ref'].is_unique)
+
+print(df.tail())

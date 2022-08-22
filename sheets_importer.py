@@ -90,6 +90,7 @@ def main():
     bad = loose_joined[loose_joined['_merge'] == 'right_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 
     print(f'Bad entries: {len(bad)}')
+    print(bad)
 
     non_labeled = loose_joined[loose_joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 

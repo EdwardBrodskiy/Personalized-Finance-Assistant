@@ -45,15 +45,38 @@ class Classifier:
                 labeled = labeled.astype(merged_types)
                 labeled_data = pd.concat([labeled_data, labeled], ignore_index=True)
 
-        print(f'Directly labeled {len(labeled_data)}')
+        data = data.drop(index=data[data['ref'].isin(labeled_data['ref'])].index)
 
-        data = data.drop(index=labeled_data['ref'])
+        return labeled_data, data
 
-        print(data.info())
-        print(data.head(50))
+    def classify_life(self, data: pd.DataFrame):
+        with open('classification_data/life.json') as file:
+            life_keys = json.load(file)
 
-        return labeled_data
+        labeled_data = pd.DataFrame(merged_types, index=[])
+        labeled_data = labeled_data.astype(merged_types)
 
+        for who, keys in life_keys.items():
+            if not keys:
+                continue
+            identified = data[data['Description'].str.contains('|'.join(keys))]
+            if len(identified):
+                labeled = pd.DataFrame({
+                    'ref': identified['ref'].reset_index(drop=True),
+                    'Who': pd.Series(who, index=range(len(identified))),
+                    'What': pd.Series('', index=range(len(identified))),
+                    'Description': pd.Series('', index=range(len(identified))),
+                    'Amount': identified['Value'].reset_index(drop=True),
+                    'Sub Account': pd.Series('life', index=range(len(identified))),
+
+                })
+                labeled = labeled.astype(merged_types)
+                labeled_data = pd.concat([labeled_data, labeled], ignore_index=True)
+
+        data = data.drop(index=data[data['ref'].isin(labeled_data['ref'])].index)
+        print(data.head(60))
+
+        return labeled_data, data
 
 
 def main():
@@ -61,19 +84,19 @@ def main():
     db = DataBase()
     data = db.get_database()
     merged = db.get_merged()
-    print(merged[merged['Sub Account'] == 'existence']['Who'].value_counts())
+    print(merged[merged['Sub Account'] == 'life']['Who'].value_counts())
     joined = data.merge(merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
 
     good = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
-    print(good[good['Who'] == 'Food Venue'])
 
     un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 
     un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
     print(un_labeled.info())
-    new_labled = cl.classify_existence_certain(un_labeled)
+    existence_labeled, un_labeled = cl.classify_existence_certain(un_labeled)
+    life_labeled, un_labeled = cl.classify_life(un_labeled)
+    db.add_to_merged(existence_labeled)
 
-    db.add_to_merged(new_labled)
 
 
 if __name__ == '__main__':

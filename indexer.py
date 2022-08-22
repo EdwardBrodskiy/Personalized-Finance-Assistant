@@ -27,10 +27,10 @@ def get_items_from_input():
 
     items_table = pd.DataFrame(data=all_items, columns=list(mp.keys()))
     items_table['Date'] = pd.to_datetime(items_table['Date'], dayfirst=True)
+    items_table['ref'] = items_table.index
     items_table = items_table.astype(database_types)
 
     items_table = items_table.replace(r'^\s*$', np.nan, regex=True)
-    items_table['ref'] = items_table.index
     items_table.index.name = 'key'
     return items_table
 
