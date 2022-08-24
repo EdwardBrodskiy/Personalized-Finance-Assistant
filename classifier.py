@@ -97,18 +97,29 @@ class Classifier:
 
             # work out what information we need from user
             if not len(part_labeled_row):
-                part_labeled_row = None
+                part_labeled_row = pd.DataFrame({
+                    'ref': [row['ref']],
+                    'Who': [''],
+                    'What': [''],
+                    'Description': [''],
+                    'Amount': [row['Value']],
+                    'Sub Account': ['existence'],
+
+                })
+
                 expected_fields = ['Who', 'What', 'Description', 'Sub Account', 'Amount']
-                continue
             else:
                 expected_fields = ['What', 'Description', 'Sub Account', 'Amount']
                 part_labeled_row = part_labeled_row.reset_index().iloc[0]  # extract the single row
+                part_labeled_row = part_labeled_row.to_frame().T.drop('index', axis=1) # and make it into a len 1 data frame
+            part_labeled_row = part_labeled_row.astype(merged_types)
 
             # User information display
-            if part_labeled_row is not None:
-                part_labeled_row = part_labeled_row.to_frame().T.drop('index', axis=1)
 
-                print(f'Part Labeled row:\n{part_labeled_row}')
+            chars_wide = 140
+            print('#' * chars_wide)
+
+            print(f'Part Labeled row:\n{part_labeled_row}')
 
             for key, mapping in mappings.items():
                 if key in expected_fields:
@@ -116,7 +127,7 @@ class Classifier:
                     text_pairs = [f'{value}  {i}' for i, value in enumerate(mapping)]
                     max_length = max(map(len, text_pairs))
                     text_pairs = list(map(lambda x: x.ljust(max_length + 2), text_pairs))
-                    chars_wide = 140
+
                     display_columns = chars_wide // max_length
                     display_rows = len(text_pairs) // display_columns + 1
 
@@ -134,38 +145,56 @@ class Classifier:
                 continue
             else:
                 user_input = list(map(lambda x: x.strip(), user_input.split(',')))
-                entered_data = {key: None if value == '' else value for key, value in zip_longest(expected_fields, user_input)}
+                if any(map(lambda x: '|' in x, user_input)):
+                    user_inputs = list(map(lambda x: x.split('|'), user_input))
+                    user_inputs = [list(map(lambda y: y[key] if len(y) == 2 else y[0], user_inputs)) for key in range(2)]
+                    print(user_inputs)
+                else:
+                    user_inputs = [user_input]
 
-                # convert number shortcut to full category name
-                for key, mapping in mappings.items():
-                    if key in expected_fields:
-                        entered_data[key] = self._process_category(mapping, entered_data[key], key)
+                for user_entries in user_inputs:
+                    entered_data = {key: None if value == '' else value for key, value in zip_longest(expected_fields, user_entries)}
+                    row_to_label = part_labeled_row.copy(deep=True)
 
-                        if entered_data[key] not in mapping:
-                            mappings[key].append(entered_data[key])
+                    # convert number shortcut to full category name
+                    for key, mapping in mappings.items():
+                        if key in expected_fields:
+                            entered_data[key] = self._process_category(mapping, entered_data[key], key)
 
-                print(entered_data)
-                if part_labeled_row is not None:
+                            if entered_data[key] not in mapping:
+                                mappings[key].append(entered_data[key])
+
                     for key, value in entered_data.items():
                         if value is None:
                             continue
                         if key == 'Amount':
-                            part_labeled_row.at[0,key] = float(value)
+                            try:
+                                row_to_label.at[0,key] = float(value)
+                            except:
+                                print(f'Failed to convert {value} to float skipping')
+                                break
+                        elif key in ['Who', 'What']:
+                            row_to_label[key] = row_to_label[key].cat.add_categories(value)
+                            row_to_label.at[0, key] = value
                         else:
-                            part_labeled_row.at[0,key] = value
-                    print(part_labeled_row)
-
+                            row_to_label.at[0, key] = value
+                    else:
+                        print(f'\nAdding row: +++++\n{row_to_label}')
+                        labeled_data = pd.concat([labeled_data, row_to_label], ignore_index=True)
+                print(f'\nCurrently labeled data:\n{labeled_data}')
         return labeled_data, data
 
     @staticmethod
     def _process_category(mapping, entry, key):
+        if entry is None:
+            return None
         while True:
             try:
                 return mapping[int(entry)]
             except ValueError:
                 return entry
             except IndexError:
-                entry = input(f'Category does not exist in {key} please re enter: ')
+                entry = input(f'Category "{entry}" does not exist in {key} please re enter: ')
 
 
 
