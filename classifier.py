@@ -11,20 +11,23 @@ class Classifier:
         self.life = []
 
     def classify(self):
-        pass
-        # Identify concrete existence transactions
+        db = DataBase()
+        data = db.get_database()
+        merged = db.get_merged()
+        joined = data.merge(merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
 
-        # Identify concrete Life transactions
+        good = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
 
-        # Label transactions
+        un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 
-    #
-    # def classify_row(self, row):
-    #     for key, value in existence_keys.items():
-    #         if key in row[mp['Description']]:
-    #             self.existence.append((row[mp['Date']], value, float(row[mp['Value']])))
+        un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
 
-    def classify_existence_certain(self, data: pd.DataFrame):
+        auto_existence_labeled, un_labeled = self.classify_existence_certain(un_labeled)
+        manual_labeled, un_labeled = self.manual_classify(un_labeled)
+        return auto_existence_labeled, manual_labeled, un_labeled
+
+    @staticmethod
+    def classify_existence_certain(data: pd.DataFrame):
         with open('classification_data/certain_existence.json') as file:
             existence_keys = json.load(file)
 
@@ -46,11 +49,17 @@ class Classifier:
                 labeled = labeled.astype(merged_types)
                 labeled_data = pd.concat([labeled_data, labeled], ignore_index=True)
 
+        # remove double classified data
+        dups = labeled_data.duplicated(subset=['ref'])
+        duplicated_rows = labeled_data[labeled_data['ref'].isin(labeled_data[dups]['ref'])]
+        labeled_data = labeled_data.drop(index=duplicated_rows.index)
+
+        # remove labeled rows from un labeled data
         data = data.drop(index=data[data['ref'].isin(labeled_data['ref'])].index)
 
         return labeled_data, data
 
-    def classify_life(self, data: pd.DataFrame):
+    def manual_classify(self, data: pd.DataFrame):
         with open('classification_data/life.json') as file:
             life_keys = json.load(file)
 
@@ -83,6 +92,8 @@ class Classifier:
     def _manual_entry(self, data, part_labeled):
         db = DataBase()
         merged = db.get_merged()
+
+        data.merge(part_labeled, left_on=['ref'], right_on=['ref'], how='outer' ).to_csv('display_files/manual_entry_data.csv')
 
         labeled_data = pd.DataFrame(merged_types, index=[])
         labeled_data = labeled_data.astype(merged_types)
@@ -212,7 +223,7 @@ def main():
     un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
 
     existence_labeled, un_labeled = cl.classify_existence_certain(un_labeled)
-    life_labeled, un_labeled = cl.classify_life(un_labeled)
+    life_labeled, un_labeled = cl.manual_classify(un_labeled)
     db.add_to_merged(existence_labeled)
 
 

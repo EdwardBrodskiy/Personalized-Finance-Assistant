@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 from database import DataBase
-from other import sep
-
+import logging
 
 
 def main():
@@ -20,7 +19,7 @@ def main():
     ingest = pd.concat([existence, life], sort=False, ignore_index=True)
     ingest['ref2'] = ingest.index
 
-    print(f'Labeled entries: {len(ingest)}')
+    logging.info(f'Labeled entries: {len(ingest)}')
     db = DataBase()
     database = db.get_database()
 
@@ -80,17 +79,16 @@ def main():
     # join with the final and save
 
     final = pd.concat([good, loose_good], ignore_index=True)
-    print(f'Final entries: {len(final)}')
+    logging.info(f'Final entries: {len(final)}')
     final['ref'] = final['ref'].astype(np.int64)
-    print(final)
     db.add_to_merged(final)
 
     # extract left and right orphans again
 
     bad = loose_joined[loose_joined['_merge'] == 'right_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 
-    print(f'Bad entries: {len(bad)}')
-    print(bad)
+    logging.info(f'Bad entries: {len(bad)}')
+    logging.info(bad)
 
     non_labeled = loose_joined[loose_joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 

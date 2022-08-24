@@ -49,3 +49,18 @@ class DataBase:
             logging.info(f'Saved {where} with {len(new_items)} new rows')
         else:
             logging.info(f'Tried to add an empty table')
+
+    def reset_database(self):
+        old_items = self.get_database()
+        old_items.to_csv(f'{self.__path}/previous_all.csv')
+        with open(f'{self.__path}/all.csv', 'w+') as file:
+            file.write('key,Date,Type,Description,Value,Balance,Account Name,Account Number')
+            logging.warning(f'Just reset merged at {self.__path}/previous_all.csv')
+
+    def reset_merged(self):
+        old_items = self.get_merged()
+        old_items.to_csv(f'{self.__path}/previous_merged.csv')
+        with open(f'{self.__path}/merged.csv', 'w+') as file:
+            file.write('key,ref,Who,What,Description,Amount,Sub Account')
+            logging.warning(f'Just reset merged at {self.__path}/previous_merged.csv')
+
