@@ -88,7 +88,7 @@ def main():
     bad = loose_joined[loose_joined['_merge'] == 'right_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 
     logging.info(f'Bad entries: {len(bad)}')
-    logging.info(bad)
+    bad.to_csv('display_files/un_matched_labels_sheets.csv')
 
     non_labeled = loose_joined[loose_joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
 

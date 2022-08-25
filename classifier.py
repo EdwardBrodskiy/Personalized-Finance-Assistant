@@ -87,13 +87,13 @@ class Classifier:
 
         data = data.drop(index=data[data['ref'].isin(part_labeled['ref'])].index)
 
-        return part_labeled, data
+        return labeled_data, data
 
     def _manual_entry(self, data, part_labeled):
         db = DataBase()
         merged = db.get_merged()
 
-        data.merge(part_labeled, left_on=['ref'], right_on=['ref'], how='outer' ).to_csv('display_files/manual_entry_data.csv')
+        data.merge(part_labeled, left_on=['ref'], right_on=['ref'], how='outer').to_csv('display_files/manual_entry_data.csv')
 
         labeled_data = pd.DataFrame(merged_types, index=[])
         labeled_data = labeled_data.astype(merged_types)
@@ -122,7 +122,7 @@ class Classifier:
             else:
                 expected_fields = ['What', 'Description', 'Sub Account', 'Amount']
                 part_labeled_row = part_labeled_row.reset_index().iloc[0]  # extract the single row
-                part_labeled_row = part_labeled_row.to_frame().T.drop('index', axis=1) # and make it into a len 1 data frame
+                part_labeled_row = part_labeled_row.to_frame().T.drop('index', axis=1)  # and make it into a len 1 data frame
             part_labeled_row = part_labeled_row.astype(merged_types)
 
             # User information display
@@ -133,18 +133,17 @@ class Classifier:
             print(f'Part Labeled row:\n{part_labeled_row}')
 
             for key, mapping in mappings.items():
-                if key in expected_fields:
 
-                    text_pairs = [f'{value}  {i}' for i, value in enumerate(mapping)]
-                    max_length = max(map(len, text_pairs))
-                    text_pairs = list(map(lambda x: x.ljust(max_length + 2), text_pairs))
+                text_pairs = [f'{value}  {i}' for i, value in enumerate(mapping)]
+                max_length = max(map(len, text_pairs))
+                text_pairs = list(map(lambda x: x.ljust(max_length + 2), text_pairs))
 
-                    display_columns = chars_wide // max_length
-                    display_rows = len(text_pairs) // display_columns + 1
+                display_columns = chars_wide // max_length
+                display_rows = len(text_pairs) // display_columns + 1
 
-                    print(f'\nCategories for {key}:\n')
-                    for i in range(display_rows):
-                        print('|'.join(text_pairs[i * display_columns: (i + 1) * display_columns]))
+                print(f'\nCategories for {key}:\n')
+                for i in range(display_rows):
+                    print('|'.join(text_pairs[i * display_columns: (i + 1) * display_columns]))
 
             print(f'\nIncoming data to be labeled:\n{row.to_frame().T}')
             user_input = input(f'Enter {", ".join(expected_fields)}\n>>>')
@@ -180,7 +179,7 @@ class Classifier:
                             continue
                         if key == 'Amount':
                             try:
-                                row_to_label.at[0,key] = float(value)
+                                row_to_label.at[0, key] = float(value)
                             except:
                                 print(f'Failed to convert {value} to float skipping')
                                 break
@@ -192,7 +191,16 @@ class Classifier:
                     else:
                         print(f'\nAdding row: +++++\n{row_to_label}')
                         labeled_data = pd.concat([labeled_data, row_to_label], ignore_index=True)
+                labeled_data.to_csv('display_files/user_labeled_backup.csv')
                 print(f'\nCurrently labeled data:\n{labeled_data}')
+        entry = 'indexes to delete'
+        while entry:
+            print(labeled_data.tail(60))
+            entry = input('Do you want to delete any?\n')
+            if entry:
+                to_delete = list(map(lambda x: int(x), entry.split(',')))
+                labeled_data = labeled_data.drop(index=to_delete)
+
         return labeled_data, data
 
     @staticmethod
@@ -206,7 +214,6 @@ class Classifier:
                 return entry
             except IndexError:
                 entry = input(f'Category "{entry}" does not exist in {key} please re enter: ')
-
 
 
 def main():

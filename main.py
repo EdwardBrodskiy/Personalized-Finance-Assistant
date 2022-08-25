@@ -22,13 +22,19 @@ def classify_and_save():
     auto_labeled, manual_labeled, un_labeled = cl.classify()
     db = DataBase()
     db.add_to_merged(auto_labeled)
-    # db.add_to_merged(manual_labeled)
+    db.add_to_merged(manual_labeled)
     logging.info(f'These were left un labeled:\n{un_labeled}')
+
+
+def ingest_new_data():
+    index_input_data()
+    classify_and_save()
 
 
 def main():
     options = {
-        'reset': reset_db
+        'reset': reset_db,
+        'ingest': ingest_new_data
     }
     entry = input(f'{options}\nWhat do you want to do?')
     options[entry]()
