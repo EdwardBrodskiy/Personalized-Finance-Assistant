@@ -19,8 +19,9 @@ def get_items_from_input():
                 reader = csv.reader(file)
 
                 for i, row in enumerate(reader):
-                    if len(row) == len(mp) + 1:
-                        all_items.append(row[:-1])
+                    if len(row) >= len(mp) and row[0] != 'Date':
+                        print(row[:7])
+                        all_items.append(row[:7])
         except FileNotFoundError:
             logging.info(f'found years up to {year - 1}')
             break
@@ -35,8 +36,10 @@ def get_items_from_input():
     return items_table
 
 
-def find_new(df1, df2):
-    return df1[~df1.apply(tuple, 1).isin(df2.apply(tuple, 1))]
+def find_new(possibly_new, existing):
+    df1 = possibly_new[['Date', 'Value', 'Balance']]
+    df2 = existing[['Date', 'Value', 'Balance']]
+    return possibly_new[~df1.apply(tuple, 1).isin(df2.apply(tuple, 1))]
 
 
 def index():

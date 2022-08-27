@@ -4,7 +4,10 @@ import pandas as pd
 
 def main():
     full = get_joined()
-    print(full[full['What'] == 'Faith'][['Date', 'Who', 'Description_y', 'Amount']])
+    result = full[full['Description_y'].str.contains('Model F')][['Date', 'Who', 'Description_y', 'Amount']]
+    result = result[result['Who'] != 'Ebay']
+    print(result)
+    print(result['Amount'].sum())
 
 
 def get_joined():
