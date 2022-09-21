@@ -1,19 +1,18 @@
 from structures import merged_types, database_types
 import json
 import pandas as pd
-from database import DataBase
 from itertools import zip_longest
 
 
 class Classifier:
-    def __init__(self):
+    def __init__(self, db):
         self.existence = []
         self.life = []
+        self.db = db
 
     def classify(self):
-        db = DataBase()
-        data = db.get_database()
-        merged = db.get_merged()
+        data = self.db.get_database()
+        merged = self.db.get_merged()
         joined = data.merge(merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
 
         good = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
@@ -90,8 +89,8 @@ class Classifier:
         return labeled_data, data
 
     def _manual_entry(self, data, part_labeled):
-        db = DataBase()
-        merged = db.get_merged()
+
+        merged = self.db.get_merged()
 
         data.merge(part_labeled, left_on=['ref'], right_on=['ref'], how='outer').to_csv('display_files/manual_entry_data.csv')
 

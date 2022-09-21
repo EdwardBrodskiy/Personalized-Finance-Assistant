@@ -17,7 +17,7 @@ def reset_db(db):
 
 
 def classify_and_save(db):
-    cl = Classifier()
+    cl = Classifier(db)
     auto_labeled, manual_labeled, un_labeled = cl.classify()
     db.add_to_merged(auto_labeled)
     db.add_to_merged(manual_labeled)
