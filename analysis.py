@@ -1,13 +1,33 @@
 from database import DataBase
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def main():
+    sub_accounts()
+    cats()
+    plt.show()
+
+
+def sub_accounts():
     full = get_joined()
-    result = full[full['Description_y'].str.contains('Model F')][['Date', 'Who', 'Description_y', 'Amount']]
-    result = result[result['Who'] != 'Ebay']
-    print(result)
-    print(result['Amount'].sum())
+    for account in ('existence', 'life', 'cash'):
+        data = full[full['Sub Account'] == account]
+        plt.plot(data['Date'], data['Value'].cumsum(), label=account)
+    plt.plot(full['Date'], full['Balance'], label='Real')
+    plt.plot(full['Date'], full['Amount'].cumsum(), label='caclulated')
+    plt.legend(loc="upper left")
+
+
+def cats():
+    full = get_joined()
+    full = full.groupby('What').sum()
+    spending = full[full['Amount'] < 0] * -1
+
+    income = full[full['Amount'] > 0]
+    print(full)
+    spending.plot.pie(y='Amount')
+    income.plot.pie(y='Amount')
 
 
 def get_joined():

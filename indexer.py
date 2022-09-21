@@ -20,7 +20,6 @@ def get_items_from_input():
 
                 for i, row in enumerate(reader):
                     if len(row) >= len(mp) and row[0] != 'Date':
-                        print(row[:7])
                         all_items.append(row[:7])
         except FileNotFoundError:
             logging.info(f'found years up to {year - 1}')
