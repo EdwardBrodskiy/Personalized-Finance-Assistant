@@ -5,7 +5,7 @@ from indexer import index as index_input_data
 from sheets_importer import main as import_sheets_labels
 from classifier import Classifier
 from database import DataBase
-
+from analysis import analysis
 
 def reset_db(db):
     db.reset_database()
@@ -43,8 +43,9 @@ def main():
     options = {
         'reset': reset_db,
         'ingest': ingest_new_data,
-        'not test': lambda data_base: data_base.run_on_main(),
         'copy main': copy_from_protected,
+        'analysis': analysis,
+        'not test': lambda data_base: data_base.run_on_main(),
         'finish': lambda: print('hmm this should not be called'),
 
     }
