@@ -29,19 +29,34 @@ def ingest_new_data(db):
     classify_and_save(db)
 
 
+def copy_from_protected(_):
+    import shutil
+    from os.path import join
+    entry = input('copy all.csv, merged.csv or both?(a, m, b)')
+    if entry in ('a', 'b'):
+        shutil.copy2(join('database', 'protected', 'all.csv'), join('database', 'all.csv'))
+    if entry in ('m', 'b'):
+        shutil.copy2(join('database', 'protected', 'merged.csv'), join('database', 'merged.csv'))
+
+
 def main():
     options = {
         'reset': reset_db,
         'ingest': ingest_new_data,
         'not test': lambda data_base: data_base.run_on_main(),
-        'finish': lambda: print('hmm this should not be called')
+        'copy main': copy_from_protected,
+        'finish': lambda: print('hmm this should not be called'),
+
     }
     db = DataBase()
     while True:
         entry = input(f'{" | ".join(options.keys())}\nWhat do you want to do?')
         if entry == 'finish':
             break
-        options[entry](db)
+        if entry in options:
+            options[entry](db)
+        else:
+            print('No such command found!')
 
 
 if __name__ == '__main__':
