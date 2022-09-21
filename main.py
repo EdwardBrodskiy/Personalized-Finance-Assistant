@@ -7,37 +7,41 @@ from classifier import Classifier
 from database import DataBase
 
 
-def reset_db():
-    db = DataBase()
+def reset_db(db):
     db.reset_database()
     db.reset_merged()
 
     index_input_data()
     import_sheets_labels()
-    classify_and_save()
+    classify_and_save(db)
 
 
-def classify_and_save():
+def classify_and_save(db):
     cl = Classifier()
     auto_labeled, manual_labeled, un_labeled = cl.classify()
-    db = DataBase()
     db.add_to_merged(auto_labeled)
     db.add_to_merged(manual_labeled)
     logging.info(f'These were left un labeled:\n{un_labeled}')
 
 
-def ingest_new_data():
+def ingest_new_data(db):
     index_input_data()
-    classify_and_save()
+    classify_and_save(db)
 
 
 def main():
     options = {
         'reset': reset_db,
-        'ingest': ingest_new_data
+        'ingest': ingest_new_data,
+        'not test': lambda data_base: data_base.run_on_main(),
+        'finish': lambda: print('hmm this should not be called')
     }
-    entry = input(f'{options}\nWhat do you want to do?')
-    options[entry]()
+    db = DataBase()
+    while True:
+        entry = input(f'{" | ".join(options.keys())}\nWhat do you want to do?')
+        if entry == 'finish':
+            break
+        options[entry](db)
 
 
 if __name__ == '__main__':

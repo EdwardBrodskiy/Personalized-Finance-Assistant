@@ -9,9 +9,10 @@ class DataBase:
         self.__path = 'database'
 
     def run_on_main(self):
-        if input('I know what I am doing! I want to run on main database: ') == 'YES':
+        if input('I know what I am doing! I want to run on main database: ') == 'yes':
             self.__path = 'database/protected'
-        raise FileNotFoundError('Remove run on main!')
+        else:
+            raise FileNotFoundError('Remove run on main!')
 
     def get_database(self):
         database = pd.read_csv(f'{self.__path}/all.csv', index_col='key')
