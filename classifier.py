@@ -2,7 +2,7 @@ from structures import merged_types, database_types
 import json
 import pandas as pd
 from itertools import zip_longest
-
+import math
 
 class Classifier:
     def __init__(self, db):
@@ -166,8 +166,26 @@ class Classifier:
                 else:
                     user_inputs = [user_input]
 
-                for user_entries in user_inputs:
-                    entered_data = {key: None if value == '' else value for key, value in zip_longest(expected_fields, user_entries)}
+                # convert user inputs to keyed data
+                user_inputs = list(map(
+                    lambda user_entries: {key: None if value == '' else value for key, value in zip_longest(expected_fields, user_entries)},
+                    user_inputs))
+
+                try:
+                    amount_sum = sum(map(lambda x: float(x['Amount']), user_inputs))
+                    if amount_sum != part_labeled_row.at[0, 'Amount']:
+                        for i, entered_data in enumerate(user_inputs):
+                            floaty = float(entered_data['Amount']) / amount_sum * part_labeled_row.at[0, 'Amount']
+                            amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
+                            user_inputs[i]['Amount'] = amount
+                except ValueError:
+                    print(f'Failed to convert Amounts to float skipping')
+                    continue
+                except ZeroDivisionError:
+                    print('bad ratio on Amount skipping')
+                    continue
+
+                for entered_data in user_inputs:
                     row_to_label = part_labeled_row.copy(deep=True)
 
                     # convert number shortcut to full category name
@@ -184,7 +202,7 @@ class Classifier:
                         if key == 'Amount':
                             try:
                                 row_to_label.at[0, key] = float(value)
-                            except:
+                            except ValueError:
                                 print(f'Failed to convert {value} to float skipping')
                                 break
                         elif key in ['Who', 'What']:
