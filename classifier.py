@@ -15,9 +15,13 @@ class Classifier:
         merged = self.db.get_merged()
         joined = data.merge(merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
 
-        good = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
+        labeled = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
 
-        un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
+        un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all')
+        if un_labeled.empty:
+            return None
+
+        un_labeled = un_labeled.drop('_merge', axis=1)
 
         un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
 
@@ -34,6 +38,7 @@ class Classifier:
         labeled_data = labeled_data.astype(merged_types)
 
         for who, keys in existence_keys.items():
+            print(data)
             identified = data[data['Description'].str.contains('|'.join(keys))]
             if len(identified):
                 labeled = pd.DataFrame({

@@ -18,10 +18,15 @@ def reset_db(db):
 
 def classify_and_save(db):
     cl = Classifier(db)
-    auto_labeled, manual_labeled, un_labeled = cl.classify()
-    db.add_to_merged(auto_labeled)
-    db.add_to_merged(manual_labeled)
-    logging.info(f'These were left un labeled:\n{un_labeled}')
+    labeled = cl.classify()
+    if labeled is None:
+        logging.info('No new entries were found for labeling')
+        print('Nothing to label everything is up to date!')
+    else:
+        auto_labeled, manual_labeled, un_labeled = labeled
+        db.add_to_merged(auto_labeled)
+        db.add_to_merged(manual_labeled)
+        logging.info(f'These were left un labeled:\n{un_labeled}')
 
 
 def ingest_new_data(db):
