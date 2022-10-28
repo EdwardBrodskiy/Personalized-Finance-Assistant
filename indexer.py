@@ -41,9 +41,8 @@ def find_new(possibly_new, existing):
     return possibly_new[~df1.apply(tuple, 1).isin(df2.apply(tuple, 1))]
 
 
-def index():
+def index(db):
     incoming_table = get_items_from_input()
-    db = DataBase()
     current_table = db.get_database()
 
     new = find_new(incoming_table, current_table)

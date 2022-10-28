@@ -7,11 +7,12 @@ from classifier import Classifier
 from database import DataBase
 from analysis import analysis
 
+
 def reset_db(db):
     db.reset_database()
     db.reset_merged()
 
-    index_input_data()
+    index_input_data(db)
     import_sheets_labels()
     classify_and_save(db)
 
@@ -30,7 +31,7 @@ def classify_and_save(db):
 
 
 def ingest_new_data(db):
-    index_input_data()
+    index_input_data(db)
     classify_and_save(db)
 
 

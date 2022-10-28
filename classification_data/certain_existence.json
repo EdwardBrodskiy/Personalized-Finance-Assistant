@@ -13,7 +13,9 @@
   ],
   "Travel": [
     "TRAVEL",
-    "ARRIVA THE SHIRES"
+    "ARRIVA THE SHIRES",
+    "UBER",
+    "NATIONAL EXPRESS"
   ],
   "VPN": [
     "VPN"
@@ -27,7 +29,9 @@
     "MARKS&SPENCER",
     "CKAZKA",
     "WILKO RETAIL",
-    "PAYLESS FOOD AND , WINE"
+    "PAYLESS FOOD AND , WINE",
+    "M&S",
+    "WAITROSE"
   ],
   "Food Venue": [
     "HALF MOON",
@@ -39,7 +43,8 @@
     "BUY FOODS , SUPERMARKET",
     "FENTIMAN",
     "LUSITANA",
-    "SHOP AND GO"
+    "SHOP AND GO",
+    "DELIVEROO"
   ],
   "ISP" : [
     "O2",
