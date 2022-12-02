@@ -23,6 +23,10 @@ class DataBase:
         merged = pd.read_csv(f'{self.__path}/merged.csv', index_col='key')
         return merged.astype(merged_types)
 
+    def get_off_record(self):
+        cash = pd.read_csv(f'{self.__path}/cash.csv', index_col='key')
+        return cash.astype(merged_types)
+
     def add_to_database(self, new_items: pd.DataFrame):
         old_items = self.get_database()
 
@@ -34,6 +38,10 @@ class DataBase:
     def add_to_merged(self, new_items: pd.DataFrame):
         old_items = self.get_merged()
         self._add_new_items(old_items, new_items, 'merged')
+
+    def add_to_off_record(self, new_items: pd.DataFrame):
+        old_items = self.get_off_record()
+        self._add_new_items(old_items, new_items, 'off_record')
 
     def _add_new_items(self, old_items, new_items: pd.DataFrame, where):
         if len(new_items):
@@ -65,3 +73,9 @@ class DataBase:
             file.write('key,ref,Who,What,Description,Amount,Sub Account')
             logging.warning(f'Just reset merged at {self.__path}/previous_merged.csv')
 
+    def _reset(self, what, columns):
+        old_items = self.get_merged()
+        old_items.to_csv(f'{self.__path}/previous_{what}.csv')
+        with open(f'{self.__path}/merged.csv', 'w+') as file:
+            file.write(','.join(('key', *columns.keys())))
+            logging.warning(f'Just reset {what} at {self.__path}/previous_{what}.csv')

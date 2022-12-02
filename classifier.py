@@ -237,26 +237,5 @@ class Classifier:
             except IndexError:
                 entry = input(f'Category "{entry}" does not exist in {key} please re enter: ')
 
-
-def main():
-    cl = Classifier()
-    db = DataBase()
-    data = db.get_database()
-    merged = db.get_merged()
-    joined = data.merge(merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
-
-    good = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
-
-    un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all').drop('_merge', axis=1)
-
-    un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
-
-    existence_labeled, un_labeled = cl.classify_existence_certain(un_labeled)
-    life_labeled, un_labeled = cl.manual_classify(un_labeled)
-    db.add_to_merged(existence_labeled)
-
-
-if __name__ == '__main__':
-    pd.set_option('display.max_columns', 500)
-    pd.set_option('display.width', 300)
-    main()
+    def classify_off_record(self):
+        pass
