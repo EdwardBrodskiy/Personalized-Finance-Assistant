@@ -172,12 +172,13 @@ class Classifier:
                     user_inputs))
 
                 try:
-                    amount_sum = sum(map(lambda x: float(x['Amount']), user_inputs))
-                    if amount_sum != part_labeled_row.at[0, 'Amount']:
-                        for i, entered_data in enumerate(user_inputs):
-                            floaty = float(entered_data['Amount']) / amount_sum * part_labeled_row.at[0, 'Amount']
-                            amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
-                            user_inputs[i]['Amount'] = amount
+                    if user_inputs[0]['Amount'] is not None:
+                        amount_sum = sum(map(lambda x: float(x['Amount']), user_inputs))
+                        if amount_sum != part_labeled_row.at[0, 'Amount']:
+                            for i, entered_data in enumerate(user_inputs):
+                                floaty = float(entered_data['Amount']) / amount_sum * part_labeled_row.at[0, 'Amount']
+                                amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
+                                user_inputs[i]['Amount'] = amount
                 except ValueError:
                     print(f'Failed to convert Amounts to float skipping')
                     continue
