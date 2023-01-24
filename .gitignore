@@ -2,3 +2,5 @@
 /venv
 *.log
 /display_files
+__pycache__/
+
