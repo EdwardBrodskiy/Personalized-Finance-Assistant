@@ -21,3 +21,13 @@ merged_types = {
     'Amount': np.float64,
     'Sub Account': 'string'
 }
+
+off_record_types = {
+    'ref': np.int64,
+    'Date': np.datetime64,
+    'Who': 'category',
+    'What': 'category',
+    'Description': 'string',
+    'Amount': np.float64,
+    'Sub Account': 'string'
+}
