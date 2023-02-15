@@ -2,6 +2,7 @@ from database import DataBase
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime
 
 
 def main():
@@ -45,7 +46,7 @@ def cats(db):
 
     charts = {
         'Spending': full[full['Amount'] < 0] * -1,
-        'Income' : full[full['Amount'] > 0]
+        'Income': full[full['Amount'] > 0]
     }
     for key, df in charts.items():
         df.plot.pie(y='Amount', title=key, autopct=pie_absolute_value(df['Amount']))
@@ -55,6 +56,34 @@ def get_joined(db):
     data = db.get_database()
     merged = db.get_merged()
     return data.merge(merged, on='ref')
+
+
+def get_faith_bills(db):
+    full = get_joined(db)
+    # full['epoch_time'] = full['Date'].apply(lambda x: int(datetime.strptime(x, '%Y-%m-%d').strftime('%s')))
+    # full['epoch_time'].astype(int)
+    # move_in_time = int(datetime.strptime('2022-09-02', '%Y-%m-%d').strftime('%s'))
+    move_in_time = pd.Timestamp('2022-09-02')
+    bills = full[
+        full['Who'].isin(['Council Tax', 'Thames Water', 'British Gas', 'TV Licensing']) &
+        (full['Date'] > move_in_time) &
+        ~(full['What'] == 'Faith')
+        ]
+
+    faith = full[
+        full['Who'].isin(['Council Tax', 'Thames Water', 'British Gas', 'TV Licensing']) &
+        (full['Date'] > move_in_time) &
+        (full['What'] == 'Faith')
+        ]
+    print(bills[['ref', 'Date', 'Who', 'Amount']])
+
+    print(faith[['ref', 'Date', 'Who', 'What', 'Description_y', 'Amount', 'Description_x']])
+
+    total_due = bills['Amount'].sum() / 2
+
+    total_payed = faith['Amount'].sum()
+
+    print(f'{total_due=:.2f}\n{total_payed=}\ndifference={total_due + total_payed:.2f}')
 
 
 if __name__ == '__main__':
