@@ -27,6 +27,7 @@
   },
   "CTkLabel": {
     "corner_radius": 0,
+    "padx": 4,
     "fg_Color": ["#F9F9FA", "gray23"],
     "fg_color": "transparent",
     "text_color": ["gray10", "#DCE4EE"]
