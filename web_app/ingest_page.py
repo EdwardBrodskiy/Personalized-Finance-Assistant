@@ -1,6 +1,7 @@
 import customtkinter
 from collections import OrderedDict
 from classifier_for_gui import Classifier
+from web_app.auto_suggest_entry import AutoSuggestEntry
 
 
 class IngestPage(customtkinter.CTkFrame):
@@ -29,8 +30,11 @@ class IngestPage(customtkinter.CTkFrame):
                                                            padx=10, pady=10)
         self.lb_classifier_result.grid(row=1, column=0, sticky='e')
 
+        # suggestions pane
+        self.suggestions_pane = customtkinter.CTkScrollableFrame(self)
+        self.suggestions_pane.pack(side='right', fill='y')
         # main ingest process
-        self.ingest_process = IngestProcess(self, db)
+        self.ingest_process = IngestProcess(self, db, self.suggestions_pane)
         self.ingest_process.pack(side='top')
 
     def run_indexer(self):
@@ -38,7 +42,7 @@ class IngestPage(customtkinter.CTkFrame):
 
 
 class IngestProcess(customtkinter.CTkFrame):
-    def __init__(self, master, db, **kwargs):
+    def __init__(self, master, db, suggestions_pane, **kwargs):
         super().__init__(master, **kwargs)
 
         self.db = db
@@ -46,21 +50,25 @@ class IngestProcess(customtkinter.CTkFrame):
         # cl = Classifier(db)
         # labeled = cl.classify()
         # Entry
-        self.row_entry = RowEntry(self)
-        self.row_entry.pack(fill='x')
+        self.row_entry = RowEntry(self, suggestions_pane)
+        self.row_entry.pack()
+
+        self.lb = customtkinter.CTkLabel(self, text='hi')
+        self.lb.pack()
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, suggestions_pane, **kwargs):
         super().__init__(master, **kwargs)
-
+        self.configure(height=150)
+        ts = ('one', 'two', 'three', 'four', 'five', 'six', 'seven') * 5
         self.fields = OrderedDict(
             (
-                ('Who', AutoSuggestEntry(self, suggestions=('mama', 'papa', 'maria'))),
-                ('What', customtkinter.CTkEntry(self)),
+                ('Who', AutoSuggestEntry(self, suggestions_pane, suggestions=ts)),
+                ('What', AutoSuggestEntry(self, suggestions_pane, suggestions=ts)),
                 ('Description', customtkinter.CTkEntry(self, width=300)),
                 ('Amount', customtkinter.CTkEntry(self)),
-                ('Sub Account', customtkinter.CTkEntry(self)),
+                ('Sub Account', AutoSuggestEntry(self, suggestions_pane, suggestions=ts)),
 
             )
         )
@@ -72,71 +80,3 @@ class RowEntry(customtkinter.CTkFrame):
             label = customtkinter.CTkLabel(self, text=key)
             label.grid(row=0, column=index, sticky='w')
             field.grid(row=1, column=index, sticky='n')
-
-
-class AutoSuggestEntry(customtkinter.CTkEntry):
-    def __init__(self, master=None, suggestions=None, **kwargs):
-        super().__init__(master, **kwargs)
-        self.suggestions = suggestions if suggestions else []
-        self.var = customtkinter.StringVar()
-        self.configure(textvariable=self.var)
-        self.var.trace_add("write", self.show_suggestions)
-        self.labels_frame = None
-        self.suggested = ()
-        self.selected_label_index = -1
-        self.bind("<FocusOut>", self.hide_suggestions)
-        self.bind("<Up>", self.move_selection_up)
-        self.bind("<Down>", self.move_selection_down)
-        self.bind("<Return>", self.select_suggestion)
-
-    def show_suggestions(self, *args):
-        if not self.labels_frame:
-            self.labels_frame = customtkinter.CTkFrame(self, width=self.winfo_width(), height=0)
-            self.labels_frame.grid()
-
-        for widget in self.labels_frame.winfo_children():
-            widget.destroy()
-
-        query = self.var.get().lower()
-        suggestions = [word for word in self.suggestions if word.lower().startswith(query)]
-
-        self.suggested = tuple(suggestions)
-        for index, suggestion in enumerate(suggestions):
-            label = customtkinter.CTkLabel(self.labels_frame, text=suggestion, padx=3, pady=3, width=self.cget('width'),
-                                           anchor='w')
-            label.bind("<Button-1>", lambda event, text=suggestion: self.select_suggestion(event, text))
-            label.bind("<Enter>", lambda event, index=index: self.highlight_label(index))
-            label.bind("<Leave>", lambda event: self.highlight_label(-1))
-            label.grid(row=index, column=0, sticky="w")
-
-    def hide_suggestions(self, event=None):
-        if self.labels_frame:
-            self.labels_frame.destroy()
-            self.labels_frame = None
-
-    def move_selection_up(self, event):
-        if self.labels_frame:
-            self.selected_label_index -= 1
-            self.selected_label_index = max(self.selected_label_index, 0)
-            self.highlight_label(self.selected_label_index)
-
-    def move_selection_down(self, event):
-        if self.labels_frame:
-            self.selected_label_index += 1
-            self.selected_label_index = min(self.selected_label_index, len(self.labels_frame.winfo_children()) - 1)
-            self.highlight_label(self.selected_label_index)
-
-    def select_suggestion(self, event=None, text=None):
-        if self.labels_frame and (self.selected_label_index >= 0 or text):
-            if not text:
-                text = self.suggested[self.selected_label_index]
-            self.var.set(text)
-            self.icursor(customtkinter.END)
-            self.hide_suggestions()
-
-    def highlight_label(self, index):
-        for label in self.labels_frame.winfo_children():
-            if index == label.grid_info()["row"]:
-                label.configure(fg_color="#106A43")
-            else:
-                label.configure(fg_color="transparent")

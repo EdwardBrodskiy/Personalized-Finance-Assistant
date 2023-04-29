@@ -17,7 +17,7 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("Accounts Manager")
-        self.geometry(f"{1200}x{700}")
+        self.geometry(f"{1600}x{1000}")
         customtkinter.set_widget_scaling(1.2)
 
         # create 2x2 grid system
