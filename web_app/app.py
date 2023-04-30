@@ -3,10 +3,10 @@ import tkinter.messagebox
 import customtkinter
 from web_app.ingest_page import IngestPage
 from database import DataBase
-
+import os
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("my_theme.json")  # Themes: "blue" (standard), "green", "dark-blue"
+customtkinter.set_default_color_theme(os.path.join('web_app', 'my_theme.json'))
 
 
 class App(customtkinter.CTk):
@@ -42,6 +42,4 @@ class App(customtkinter.CTk):
         return ingest_page
 
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+

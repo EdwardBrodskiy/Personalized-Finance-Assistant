@@ -51,6 +51,8 @@ def index(db):
 
     db.add_to_database(new)
 
+    return new  # return intended for info based output only
+
 
 if __name__ == '__main__':
     pd.set_option('display.max_columns', 500)

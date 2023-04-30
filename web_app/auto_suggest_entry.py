@@ -75,3 +75,7 @@ class AutoSuggestEntry(customtkinter.CTkEntry):
                 label.configure(fg_color="#106A43")
             else:
                 label.configure(fg_color="transparent")
+
+    def destroy(self):
+        customtkinter.CTkEntry.destroy(self)
+        self.hide_suggestions(None)
