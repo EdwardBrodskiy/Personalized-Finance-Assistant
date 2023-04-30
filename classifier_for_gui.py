@@ -10,13 +10,17 @@ class Classifier:
         self.existence = []
         self.life = []
         self.db = db
+        self.merged = self.db.get_merged()
 
-    def classify(self):
+        self.auto_existence_labeled = pd.DataFrame()
+        self.un_labeled = pd.DataFrame()
+        self.part_labeled = pd.DataFrame()
+
+    def begin_classification(self):
         data = self.db.get_database()
-        merged = self.db.get_merged()
-        joined = data.merge(merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
+        joined = data.merge(self.merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
 
-        labeled = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
+        # labeled = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
 
         un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all')
         if un_labeled.empty:
@@ -27,8 +31,10 @@ class Classifier:
         un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
 
         auto_existence_labeled, un_labeled = self.classify_existence_certain(un_labeled)
-        manual_labeled, un_labeled = self.manual_classify(un_labeled)
-        return auto_existence_labeled, manual_labeled, un_labeled
+        self.auto_existence_labeled = auto_existence_labeled
+        self.un_labeled = un_labeled
+
+        self.setup_for_manual_classification()
 
     @staticmethod
     def classify_existence_certain(data: pd.DataFrame):
@@ -64,7 +70,7 @@ class Classifier:
 
         return labeled_data, data
 
-    def manual_classify(self, data: pd.DataFrame):
+    def setup_for_manual_classification(self):
         with open('classification_data/life.json') as file:
             life_keys = json.load(file)
 
@@ -74,7 +80,7 @@ class Classifier:
         for who, keys in life_keys.items():
             if not keys:
                 continue
-            identified = data[data['Description'].str.contains('|'.join(keys))]
+            identified = self.un_labeled[self.un_labeled['Description'].str.contains('|'.join(keys))]
             if len(identified):
                 labeled = pd.DataFrame({
                     'ref': identified['ref'].reset_index(drop=True),
@@ -88,15 +94,30 @@ class Classifier:
                 labeled = labeled.astype(merged_types)
                 part_labeled = pd.concat([part_labeled, labeled], ignore_index=True)
 
-        labeled_data, data = self._manual_entry(data, part_labeled)
+        self.part_labeled = part_labeled
 
-        data = data.drop(index=data[data['ref'].isin(part_labeled['ref'])].index)
+    def get_entry_prerequisites_for_manual_entry(self, index):
+        row = self.un_labeled.iloc[index]
+        part_labeled_row = self.part_labeled[self.part_labeled['ref'] == row['ref']]
 
-        return labeled_data, data
+        if not len(part_labeled_row):
+            part_labeled_row = pd.DataFrame({
+                'ref': [row['ref']],
+                'Who': [''],
+                'What': [''],
+                'Description': [''],
+                'Amount': [row['Value']],
+                'Sub Account': ['existence'],
+
+            })
+        else:
+            part_labeled_row = part_labeled_row.reset_index().iloc[0]  # extract the single row
+            part_labeled_row = part_labeled_row.to_frame().T.drop('index',
+                                                                  axis=1)  # and make it into a len 1 data frame
+        mappings = {key: list(self.merged[key].value_counts().keys()) for key in ('Who', 'What', 'Sub Account')}
+        return part_labeled_row, mappings
 
     def _manual_entry(self, data, part_labeled):
-
-        merged = self.db.get_merged()
 
         data.merge(part_labeled, left_on=['ref'], right_on=['ref'], how='outer').to_csv(
             'display_files/manual_entry_data.csv')
@@ -107,7 +128,7 @@ class Classifier:
         data = data.sort_values('Date')
 
         # get categories used and map them to a number (index)
-        mappings = {key: list(merged[key].value_counts().keys()) for key in ('Who', 'What', 'Sub Account')}
+        mappings = {key: list(self.merged[key].value_counts().keys()) for key in ('Who', 'What', 'Sub Account')}
 
         for index, row in data.iterrows():
             part_labeled_row = part_labeled[part_labeled['ref'] == row['ref']]
@@ -242,6 +263,38 @@ class Classifier:
                 return entry
             except IndexError:
                 entry = input(f'Category "{entry}" does not exist in {key} please re enter: ')
+
+    @staticmethod
+    def process_user_input(data, part_labeled_row: pd.DataFrame):
+        expected_fields = ['Who', 'What', 'Description', 'Sub Account', 'Amount']
+        user_input = list(map(lambda x: x.strip(), data))
+        if any(map(lambda x: '|' in x, user_input)):
+            user_inputs = list(map(lambda x: x.split('|'), user_input))
+            user_inputs = [list(map(lambda y: y[key] if len(y) == 2 else y[0], user_inputs)) for key in
+                           range(2)]
+            print(user_inputs)
+        else:
+            user_inputs = [user_input]
+
+        # convert user inputs to keyed data
+        user_inputs = list(map(
+            lambda user_entries: {key: None if value == '' else value for key, value in
+                                  zip_longest(expected_fields, user_entries)},
+            user_inputs))
+
+        try:
+            amount_sum = sum(map(lambda x: float(x['Amount']), user_inputs))
+            if amount_sum != part_labeled_row.at[0, 'Amount']:
+                for i, entered_data in enumerate(user_inputs):
+                    floaty = float(entered_data['Amount']) / amount_sum * part_labeled_row.at[0, 'Amount']
+                    amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
+                    user_inputs[i]['Amount'] = amount
+        except ValueError:
+            raise ValueError(f'Failed to convert Amounts to float skipping')
+
+        except ZeroDivisionError:
+            raise ZeroDivisionError('bad ratio on Amount skipping')
+        return user_inputs
 
     def classify_off_record(self):
         pass
