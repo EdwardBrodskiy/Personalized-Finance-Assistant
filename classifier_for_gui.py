@@ -206,10 +206,10 @@ class Classifier:
                                 amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
                                 user_inputs[i]['Amount'] = amount
                 except ValueError:
-                    print(f'Failed to convert Amounts to float skipping')
+                    print(f'Failed to convert Amounts to numeric value')
                     continue
                 except ZeroDivisionError:
-                    print('bad ratio on Amount skipping')
+                    print('Bad ratio in Amount')
                     continue
 
                 for entered_data in user_inputs:
@@ -266,7 +266,7 @@ class Classifier:
 
     @staticmethod
     def process_user_input(data, part_labeled_row: pd.DataFrame):
-        expected_fields = ['Who', 'What', 'Description', 'Sub Account', 'Amount']
+        expected_fields = ['Who', 'What', 'Description', 'Amount', 'Sub Account']
         user_input = list(map(lambda x: x.strip(), data))
         if any(map(lambda x: '|' in x, user_input)):
             user_inputs = list(map(lambda x: x.split('|'), user_input))
@@ -290,10 +290,9 @@ class Classifier:
                     amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
                     user_inputs[i]['Amount'] = amount
         except ValueError:
-            raise ValueError(f'Failed to convert Amounts to float skipping')
-
+            raise ValueError(f'Failed to convert Amounts to numeric value')
         except ZeroDivisionError:
-            raise ZeroDivisionError('bad ratio on Amount skipping')
+            raise ZeroDivisionError('Bad ratio in Amount')
         return user_inputs
 
     def classify_off_record(self):

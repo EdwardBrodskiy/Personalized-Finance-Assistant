@@ -51,7 +51,7 @@ class IngestPage(customtkinter.CTkFrame):
         self.bt_run_classifier.configure(state='disabled')
 
         self.ingest_label.pack_forget()
-        self.ingest_process = IngestProcess(self, self.classifier, self.suggestions_pane)
+        self.ingest_process = IngestProcess(self, self.classifier, self.suggestions_pane, height=2000)
         self.ingest_process.pack(side='top', fill='both')
 
     def run_indexer(self):
@@ -62,7 +62,7 @@ class IngestPage(customtkinter.CTkFrame):
             self.lb_indexer_result.configure(text=f'Indexer ran but no new rows were added!')
 
 
-class IngestProcess(customtkinter.CTkFrame):
+class IngestProcess(customtkinter.CTkScrollableFrame):
     def __init__(self, master, classifier, suggestions_pane, **kwargs):
         super().__init__(master, **kwargs)
         self.classifier = classifier
@@ -83,6 +83,8 @@ class IngestProcess(customtkinter.CTkFrame):
     def data_entered(self, data):
         self.interest_row += 1
         self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
+        self.update_idletasks()
+        self._parent_canvas.yview_moveto(1)
 
 
 class RowEntry(customtkinter.CTkFrame):
@@ -136,15 +138,15 @@ class RowEntry(customtkinter.CTkFrame):
         data = [entry.get() for entry in self.fields.values()]
 
         try:
-            data = Classifier.process_user_input(data, self.part_labeled_row)
+            user_entries = Classifier.process_user_input(data, self.part_labeled_row)
         except (ValueError, ZeroDivisionError) as e:
             ErrorPopup(self, error=e)
             return
 
         self.clear_entry()
 
-        for row in data:
-            for i, value in enumerate(row):
+        for row in user_entries:
+            for i, (key, value) in enumerate(row.items()):
                 label = customtkinter.CTkLabel(self, text=value)
                 label.grid(row=self.row_index, column=i, sticky='w')
             self.row_index += 1
