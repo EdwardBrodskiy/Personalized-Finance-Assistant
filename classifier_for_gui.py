@@ -1,11 +1,14 @@
 from structures import merged_types, database_types
 import json
 import pandas as pd
+import numpy as np
 from itertools import zip_longest
 import math
 
 
 class Classifier:
+    expected_fields = ('ref', 'Who', 'What', 'Description', 'Amount', 'Sub Account')
+
     def __init__(self, db):
         self.existence = []
         self.life = []
@@ -15,6 +18,9 @@ class Classifier:
         self.auto_existence_labeled = pd.DataFrame()
         self.un_labeled = pd.DataFrame()
         self.part_labeled = pd.DataFrame()
+
+        self.labeled_data = pd.DataFrame(merged_types, index=[])
+        self.labeled_data = self.labeled_data.astype(merged_types)
 
     def begin_classification(self):
         data = self.db.get_database()
@@ -266,7 +272,7 @@ class Classifier:
 
     @staticmethod
     def process_user_input(data, part_labeled_row: pd.DataFrame):
-        expected_fields = ['Who', 'What', 'Description', 'Amount', 'Sub Account']
+
         user_input = list(map(lambda x: x.strip(), data))
         if any(map(lambda x: '|' in x, user_input)):
             user_inputs = list(map(lambda x: x.split('|'), user_input))
@@ -279,7 +285,7 @@ class Classifier:
         # convert user inputs to keyed data
         user_inputs = list(map(
             lambda user_entries: {key: None if value == '' else value for key, value in
-                                  zip_longest(expected_fields, user_entries)},
+                                  zip_longest(Classifier.expected_fields, user_entries)},
             user_inputs))
 
         try:
@@ -293,7 +299,17 @@ class Classifier:
             raise ValueError(f'Failed to convert Amounts to numeric value')
         except ZeroDivisionError:
             raise ZeroDivisionError('Bad ratio in Amount')
+
+        for i, user_input in enumerate(user_inputs):
+            for column in part_labeled_row.columns:
+                if column not in user_input:
+                    user_inputs[i][column] = part_labeled_row.at[0, column]
         return user_inputs
+
+    def process_incoming_input(self, data):
+        new_data = pd.DataFrame(data)
+        new_data.astype(merged_types)
+        self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
 
     def classify_off_record(self):
         pass

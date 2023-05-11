@@ -72,6 +72,7 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         self.interest_row = 0
 
         # Entry
+
         self.row_entry = RowEntry(self, suggestions_pane, on_enter=self.data_entered)
         self.row_entry.pack(fill='both', expand=True)
 
@@ -85,13 +86,12 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
 
     def data_entered(self, data):
+        self.classifier.process_incoming_input(data)
+
         self.interest_row += 1
         self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
 
         self.reference_table.scroll_down_one_row()
-        # self.reference_table.destroy()
-        # self.reference_table = DataFrameWidget(self, self.classifier.un_labeled, self.interest_row, 5)
-        # self.reference_table.pack(fill='both', expand=True)
 
         # move scroll to the end
         self.update_idletasks()
@@ -115,6 +115,7 @@ class RowEntry(customtkinter.CTkFrame):
         self.part_labeled_row = part_labeled_row
         self.fields = OrderedDict(
             (
+                ('ref', customtkinter.CTkLabel(self, anchor='w')),
                 ('Who', AutoSuggestEntry(self, self.suggestions_pane, suggestions=suggestions['Who'])),
                 ('What', AutoSuggestEntry(self, self.suggestions_pane, suggestions=suggestions['What'])),
                 ('Description', customtkinter.CTkEntry(self, width=300)),
@@ -128,7 +129,10 @@ class RowEntry(customtkinter.CTkFrame):
             if self.first_table_draw:
                 label = customtkinter.CTkLabel(self, text=key)
                 label.grid(row=0, column=i, sticky='w')
-            field.insert(0, self.part_labeled_row.at[0, key])
+            if type(field) is customtkinter.CTkLabel:
+                field.configure(text=self.part_labeled_row.at[0, key])
+            else:
+                field.insert(0, self.part_labeled_row.at[0, key])
             field.grid(row=self.row_index, column=i, sticky='nsew')
 
         if self.first_table_draw:
@@ -136,7 +140,12 @@ class RowEntry(customtkinter.CTkFrame):
             self.columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
+
+        # Manually move focus to first field
+        self.fields[list(self.fields.keys())[-1]].hide_suggestions()
         self.fields[list(self.fields.keys())[0]].focus_set()
+
+        # add submit button as an alternative to <Tab> on last field
         self.enter = customtkinter.CTkButton(self, text='+', command=self.submit)
         self.enter.grid(row=self.row_index + 1, sticky='we', column=0, columnspan=len(self.fields))
 
@@ -146,7 +155,8 @@ class RowEntry(customtkinter.CTkFrame):
         self.enter.destroy()
 
     def submit(self):
-        data = [entry.get() for entry in self.fields.values()]
+        data = [entry.get() if type(entry) is not customtkinter.CTkLabel else str(entry.cget("text")) for entry in
+                self.fields.values()]
 
         try:
             user_entries = Classifier.process_user_input(data, self.part_labeled_row)
@@ -163,7 +173,7 @@ class RowEntry(customtkinter.CTkFrame):
             self.row_index += 1
 
         if self.on_enter is not None:
-            self.on_enter(data)
+            self.on_enter(user_entries)
 
 
 class DataFrameWidget(customtkinter.CTkFrame):
