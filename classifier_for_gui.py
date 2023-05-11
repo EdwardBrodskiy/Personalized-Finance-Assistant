@@ -123,141 +123,6 @@ class Classifier:
         mappings = {key: list(self.merged[key].value_counts().keys()) for key in ('Who', 'What', 'Sub Account')}
         return part_labeled_row, mappings
 
-    def _manual_entry(self, data, part_labeled):
-
-        data.merge(part_labeled, left_on=['ref'], right_on=['ref'], how='outer').to_csv(
-            'display_files/manual_entry_data.csv')
-
-        labeled_data = pd.DataFrame(merged_types, index=[])
-        labeled_data = labeled_data.astype(merged_types)
-
-        data = data.sort_values('Date')
-
-        # get categories used and map them to a number (index)
-        mappings = {key: list(self.merged[key].value_counts().keys()) for key in ('Who', 'What', 'Sub Account')}
-
-        for index, row in data.iterrows():
-            part_labeled_row = part_labeled[part_labeled['ref'] == row['ref']]
-
-            # work out what information we need from user
-            if not len(part_labeled_row):
-                part_labeled_row = pd.DataFrame({
-                    'ref': [row['ref']],
-                    'Who': [''],
-                    'What': [''],
-                    'Description': [''],
-                    'Amount': [row['Value']],
-                    'Sub Account': ['existence'],
-
-                })
-
-                expected_fields = ['Who', 'What', 'Description', 'Sub Account', 'Amount']
-            else:
-                expected_fields = ['What', 'Description', 'Sub Account', 'Amount']
-                part_labeled_row = part_labeled_row.reset_index().iloc[0]  # extract the single row
-                part_labeled_row = part_labeled_row.to_frame().T.drop('index',
-                                                                      axis=1)  # and make it into a len 1 data frame
-            part_labeled_row = part_labeled_row.astype(merged_types)
-
-            # User information display
-
-            chars_wide = 140
-            print('#' * chars_wide)
-
-            print(f'Part Labeled row:\n{part_labeled_row}')
-
-            for key, mapping in mappings.items():
-
-                text_pairs = [f'{value}  {i}' for i, value in enumerate(mapping)]
-                max_length = max(map(len, text_pairs))
-                text_pairs = list(map(lambda x: x.ljust(max_length + 2), text_pairs))
-
-                display_columns = chars_wide // max_length
-                display_rows = len(text_pairs) // display_columns + 1
-
-                print(f'\nCategories for {key}:\n')
-                for i in range(display_rows):
-                    print('|'.join(text_pairs[i * display_columns: (i + 1) * display_columns]))
-
-            print(f'\nIncoming data to be labeled:\n{row.to_frame().T}')
-            user_input = input(f'Enter {", ".join(expected_fields)}\n>>>')
-            if user_input == 'finish':
-                break
-            elif user_input in ['exit', 'cancel']:
-                exit()
-            elif user_input in ['s', 'skip', '']:
-                continue
-            else:
-                user_input = list(map(lambda x: x.strip(), user_input.split(',')))
-                if any(map(lambda x: '|' in x, user_input)):
-                    user_inputs = list(map(lambda x: x.split('|'), user_input))
-                    user_inputs = [list(map(lambda y: y[key] if len(y) == 2 else y[0], user_inputs)) for key in
-                                   range(2)]
-                    print(user_inputs)
-                else:
-                    user_inputs = [user_input]
-
-                # convert user inputs to keyed data
-                user_inputs = list(map(
-                    lambda user_entries: {key: None if value == '' else value for key, value in
-                                          zip_longest(expected_fields, user_entries)},
-                    user_inputs))
-
-                try:
-                    if user_inputs[0]['Amount'] is not None:
-                        amount_sum = sum(map(lambda x: float(x['Amount']), user_inputs))
-                        if amount_sum != part_labeled_row.at[0, 'Amount']:
-                            for i, entered_data in enumerate(user_inputs):
-                                floaty = float(entered_data['Amount']) / amount_sum * part_labeled_row.at[0, 'Amount']
-                                amount = (math.ceil(floaty * 100) if i % 2 else math.floor(floaty * 100)) / 100
-                                user_inputs[i]['Amount'] = amount
-                except ValueError:
-                    print(f'Failed to convert Amounts to numeric value')
-                    continue
-                except ZeroDivisionError:
-                    print('Bad ratio in Amount')
-                    continue
-
-                for entered_data in user_inputs:
-                    row_to_label = part_labeled_row.copy(deep=True)
-
-                    # convert number shortcut to full category name
-                    for key, mapping in mappings.items():
-                        if key in expected_fields:
-                            entered_data[key] = self._process_category(mapping, entered_data[key], key)
-
-                            if entered_data[key] not in mapping:
-                                mappings[key].append(entered_data[key])
-
-                    for key, value in entered_data.items():
-                        if value is None:
-                            continue
-                        if key == 'Amount':
-                            try:
-                                row_to_label.at[0, key] = float(value)
-                            except ValueError:
-                                print(f'Failed to convert {value} to float skipping')
-                                break
-                        elif key in ['Who', 'What']:
-                            row_to_label[key] = row_to_label[key].cat.add_categories(value)
-                            row_to_label.at[0, key] = value
-                        else:
-                            row_to_label.at[0, key] = value
-                    else:
-                        print(f'\nAdding row: +++++\n{row_to_label}')
-                        labeled_data = pd.concat([labeled_data, row_to_label], ignore_index=True)
-                labeled_data.to_csv('display_files/user_labeled_backup.csv')
-                print(f'\nCurrently labeled data:\n{labeled_data}')
-        entry = 'indexes to delete'
-        while entry:
-            print(labeled_data.tail(60))
-            entry = input('Do you want to delete any?\n')
-            if entry:
-                to_delete = list(map(lambda x: int(x), entry.split(',')))
-                labeled_data = labeled_data.drop(index=to_delete)
-
-        return labeled_data, data
-
     @staticmethod
     def _process_category(mapping, entry, key):
         if entry is None:
@@ -310,6 +175,7 @@ class Classifier:
         new_data = pd.DataFrame(data)
         new_data.astype(merged_types)
         self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
+        self.labeled_data.to_csv('display_files/user_labeled_backup.csv')
 
     def classify_off_record(self):
         pass
