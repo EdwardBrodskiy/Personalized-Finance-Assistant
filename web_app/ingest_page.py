@@ -87,7 +87,8 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
 
     def data_entered(self, data):
-        self.classifier.process_incoming_input(data)
+        if data is not None:
+            self.classifier.process_incoming_input(data)
 
         self.interest_row += 1
         self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
@@ -107,7 +108,7 @@ class RowEntry(customtkinter.CTkFrame):
         self.on_enter = on_enter
 
         self.fields = None
-        self.enter = None
+        self.controls = None
         self.row_index = 1
         self.first_table_draw = True
         self.part_labeled_row = None
@@ -142,18 +143,32 @@ class RowEntry(customtkinter.CTkFrame):
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
 
+        self.create_controls()
+
         # Manually move focus to first field
         self.fields[list(self.fields.keys())[-1]].hide_suggestions()
-        self.fields[list(self.fields.keys())[0]].focus_set()
+        self.fields[list(self.fields.keys())[1]].focus_set()
 
+
+
+    def create_controls(self):
         # add submit button as an alternative to <Tab> on last field
-        self.enter = customtkinter.CTkButton(self, text='+', command=self.submit)
-        self.enter.grid(row=self.row_index + 1, sticky='we', column=0, columnspan=len(self.fields))
+        self.controls = customtkinter.CTkFrame(self)
+        self.controls.grid(row=self.row_index + 1, sticky='we', column=0, columnspan=len(self.fields))
+        self.controls.columnconfigure(0, weight=1)
+
+        skip = customtkinter.CTkButton(self.controls, text='skip', command=self.skip, fg_color="transparent",
+                                       border_width=2,
+                                       text_color=("gray10", "#DCE4EE"))
+        skip.grid(row=0, column=0, sticky='e')
+
+        add = customtkinter.CTkButton(self.controls, text='submit', command=self.submit)
+        add.grid(row=0, column=1, sticky='e')
 
     def clear_entry(self):
         for field in self.fields.values():
             field.destroy()
-        self.enter.destroy()
+        self.controls.destroy()
 
     def submit(self):
         data = [entry.get() if type(entry) is not customtkinter.CTkLabel else str(entry.cget("text")) for entry in
@@ -176,4 +191,7 @@ class RowEntry(customtkinter.CTkFrame):
         if self.on_enter is not None:
             self.on_enter(user_entries)
 
-
+    def skip(self):
+        self.clear_entry()
+        if self.on_enter is not None:
+            self.on_enter(None)
