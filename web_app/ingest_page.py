@@ -14,6 +14,7 @@ class IngestPage(customtkinter.CTkFrame):
 
         self.db = db
         self.classifier = Classifier(self.db)
+        self.ingest_process_active = False
 
         # lower controls
         self.lower_controls = customtkinter.CTkFrame(self)
@@ -45,16 +46,30 @@ class IngestPage(customtkinter.CTkFrame):
         self.ingest_process = None
 
     def start_ingest_process(self):
-        self.classifier.begin_classification()
+        if not self.ingest_process_active:
+            self.classifier.begin_classification()
 
-        self.lb_classifier_result.configure(
-            text=f'Classification in progress please enter the required manual information. '
-                 f'{len(self.classifier.auto_existence_labeled)} classified automatically')
-        self.bt_run_classifier.configure(state='disabled')
+            self.lb_classifier_result.configure(
+                text=f'Classification in progress please enter the required manual information. '
+                     f'{len(self.classifier.auto_existence_labeled)} classified automatically')
+            self.bt_run_classifier.configure(text='Finish and save')
 
-        self.ingest_label.pack_forget()
-        self.ingest_process = IngestProcess(self, self.classifier, self.suggestions_pane, height=2000)
-        self.ingest_process.pack(side='top', fill='both')
+            self.ingest_label.pack_forget()
+            self.ingest_process = IngestProcess(self, self.classifier, self.suggestions_pane, height=2000)
+            self.ingest_process.pack(side='top', fill='both')
+
+            self.ingest_process_active = True
+        else:
+            self.ingest_process.pack_forget()
+            self.ingest_label.pack(side='top')
+            self.lb_classifier_result.configure(
+                text=f'{len(self.classifier.auto_existence_labeled)} automatic entries saved and {len(self.classifier.labeled_data)} manual entries saved')
+
+            print(self.classifier.labeled_data)
+            self.db.add_to_merged(self.classifier.auto_existence_labeled)
+            self.db.add_to_merged(self.classifier.labeled_data)
+
+            self.ingest_process_active = False
 
     def run_indexer(self):
         new = index_input_data(self.db)
@@ -148,8 +163,6 @@ class RowEntry(customtkinter.CTkFrame):
         # Manually move focus to first field
         self.fields[list(self.fields.keys())[-1]].hide_suggestions()
         self.fields[list(self.fields.keys())[1]].focus_set()
-
-
 
     def create_controls(self):
         # add submit button as an alternative to <Tab> on last field

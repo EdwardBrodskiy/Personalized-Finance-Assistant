@@ -2,6 +2,8 @@ import tkinter
 import tkinter.messagebox
 import customtkinter
 from web_app.ingest_page import IngestPage
+from web_app.db_managment_page import DBManagerPage
+from web_app.analysis_page import AnalysisPage
 from database import DataBase
 import os
 
@@ -25,21 +27,16 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # create tabview
+        self.pages = {'Ingest': IngestPage, 'DB Management': DBManagerPage, 'Analysis': AnalysisPage}
         self.tabview = customtkinter.CTkTabview(self)
         self.tabview.grid(row=0, column=0, columnspan=2, padx=20, pady=(0, 20), sticky="nsew")
-        self.tabview.add("Ingest")
-        self.tabview.add("DB Management")
-        self.tabview.add("Analysis")
+        self.setup_tabs()
 
-        self.ingest_page = self.setup_ingest_tab()
+    def setup_tabs(self):
+        for key, page_class in self.pages.items():
+            self.tabview.add(key)
+            self.tabview.tab(key).grid_rowconfigure(0, weight=1)
+            self.tabview.tab(key).grid_columnconfigure(0, weight=1)
 
-    def setup_ingest_tab(self):
-        self.tabview.tab('Ingest').grid_rowconfigure(0, weight=1)
-        self.tabview.tab('Ingest').grid_columnconfigure(0, weight=1)
-
-        ingest_page = IngestPage(self.tabview.tab('Ingest'), self.db)
-        ingest_page.grid(row=0, column=0, columnspan=2, padx=0, pady=0, sticky="nsew")
-        return ingest_page
-
-
-
+            self.pages[key] = page_class(self.tabview.tab(key), self.db)
+            self.pages[key].grid(row=0, column=0, columnspan=2, padx=0, pady=0, sticky="nsew")
