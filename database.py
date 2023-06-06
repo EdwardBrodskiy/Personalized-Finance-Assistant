@@ -8,11 +8,18 @@ class DataBase:
     def __init__(self):
         self.__path = 'database'
 
-    def run_on_main(self):
-        if input('I know what I am doing! I want to run on main database: ') == 'yes':
+    def run_on_main(self, gui=False):
+        confirmation = True
+        if not gui:
+            confirmation = input('I know what I am doing! I want to run on main database: ') == 'yes'
+
+        if confirmation:
             self.__path = 'database/protected'
         else:
             raise FileNotFoundError('Remove run on main!')
+
+    def run_not_on_main(self):
+        self.__path = 'database'
 
     def get_database(self):
         database = pd.read_csv(f'{self.__path}/all.csv', index_col='key')
