@@ -40,3 +40,5 @@ class App(customtkinter.CTk):
 
             self.pages[key] = page_class(self.tabview.tab(key), self.db)
             self.pages[key].grid(row=0, column=0, columnspan=2, padx=0, pady=0, sticky="nsew")
+
+        self.tabview.set('Analysis')  # TODO: remove added for dev purposes only

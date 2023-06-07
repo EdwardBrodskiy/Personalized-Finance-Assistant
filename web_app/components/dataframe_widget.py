@@ -1,5 +1,5 @@
 import customtkinter
-
+from web_app.theme_colors import colors
 
 class DataFrameWidget(customtkinter.CTkFrame):
     def __init__(self, master, dataframe, row_of_interest, number_of_neighbors, **kwargs):
@@ -23,7 +23,7 @@ class DataFrameWidget(customtkinter.CTkFrame):
             data_row = dataframe.iloc[row]
             self.rows_of_labels[row] = []
             for column, value in enumerate(data_row):
-                bg_color = "#2FA572" if row == row_of_interest else None
+                bg_color = colors['primary'] if row == row_of_interest else None
                 label = customtkinter.CTkLabel(self, text=value, fg_color=bg_color)
                 label.grid(row=row - self.start_row + 1, column=column, sticky="nsew")
                 self.rows_of_labels[row].append(label)
