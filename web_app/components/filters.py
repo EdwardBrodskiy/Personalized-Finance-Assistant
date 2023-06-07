@@ -14,7 +14,7 @@ class Filter(ctk.CTkFrame):
         self.selected_column = ctk.CTkLabel(self, text=column_name, width=150, anchor='w')
         self.selected_column.grid(column=0, row=0, sticky='w', padx=5, pady=5)
 
-        self.selector_frame = ctk.CTkFrame(self)
+        self.selector_frame = ctk.CTkFrame(self, height=10)
         self.selector_frame.grid(column=1, row=0, sticky="we", padx=5, pady=5)
 
         self.remove_button = ctk.CTkButton(self, text='-', width=30, command=self._on_remove)
@@ -142,7 +142,6 @@ class CategoryFilter(Filter):
         self.checkbox.pack(side='right', padx=5, pady=5)
 
         available_categories = self._get_unselected_categories()
-        print(available_categories)
         self.category_selected = ctk.StringVar(value=available_categories[0])
         self.category_options = ctk.CTkOptionMenu(
             self.selector_frame, values=available_categories, variable=self.category_selected
@@ -155,13 +154,13 @@ class CategoryFilter(Filter):
         self.new_filter_button.pack(side='right', padx=5, pady=5)
 
     def _is_valid_input(self, is_valid=True):
-        if len(self._get_selected_categories()) == 0:
+        if len(self._get_requested_categories()) == 0:
             is_valid = False
-        super()._is_valid_input(is_valid=is_valid)
+        return super()._is_valid_input(is_valid=is_valid)
 
     def get_query(self):
         if self._is_valid_input():
-            return lambda series: pd.Series.isin(series, self._get_selected_categories())
+            return lambda series: pd.Series.isin(series, self._get_requested_categories())
 
     def _add_category(self):
         category = self.category_selected.get()
@@ -172,7 +171,7 @@ class CategoryFilter(Filter):
             width=0
         )
         self.categories[category].pack(side='left', padx=5, pady=5)
-
+        print('on change')
         self._on_change()
         self.update_options_menu()
 
@@ -181,6 +180,11 @@ class CategoryFilter(Filter):
         self.categories[category] = None
         self._on_change()
         self.update_options_menu()
+
+    def _get_requested_categories(self):
+        if self.include.get():
+            return self._get_selected_categories()
+        return self._get_unselected_categories()
 
     def _get_unselected_categories(self):
         return list(map(lambda kv: kv[0], filter(lambda kv: kv[1] is None, self.categories.items())))

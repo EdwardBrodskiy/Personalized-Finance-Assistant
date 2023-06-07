@@ -44,7 +44,7 @@ class DataFrameWidget(customtkinter.CTkFrame):
                 label.destroy()
 
         for label in self.rows_of_labels[self.row_of_interest]:
-            label.configure(fg_color="#2FA572")
+            label.configure(fg_color=colors['primary'])
 
         for label in self.rows_of_labels[self.row_of_interest - 1]:
             label.configure(fg_color='transparent')
