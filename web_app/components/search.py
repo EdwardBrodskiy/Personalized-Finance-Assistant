@@ -40,7 +40,8 @@ class Search(ctk.CTkFrame):
             self.filter_frame,
             column,
             on_remove=lambda: self._remove_filter(column),
-            on_change=self._filter_changed
+            on_change=self._filter_changed,
+            series=self.dataframe[column]
         )
         self.columns[column].pack(fill='x')
 
