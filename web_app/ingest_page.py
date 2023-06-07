@@ -2,9 +2,9 @@ import customtkinter
 from collections import OrderedDict
 from classifier_for_gui import Classifier
 from indexer import index as index_input_data
-from web_app.auto_suggest_entry import AutoSuggestEntry
-from web_app.dataframe_widget import DataFrameWidget
-from web_app.error_popup import ErrorPopup
+from web_app.components.auto_suggest_entry import AutoSuggestEntry
+from web_app.components.dataframe_widget import DataFrameWidget
+from web_app.popups.error_popup import ErrorPopup
 from web_app.helper_functions import ordinal
 
 

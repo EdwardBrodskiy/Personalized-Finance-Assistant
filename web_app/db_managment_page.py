@@ -1,11 +1,11 @@
 import customtkinter
 from database import DataBase
-from web_app.menu import Menu
+from web_app.components.menu import Menu
 import shutil
 from os.path import join
 
-from web_app.notification import Notification
-from web_app.warninig_popup import WarningPopup
+from web_app.components.notification import Notification
+from web_app.popups.warninig_popup import WarningPopup
 
 
 class DBManagerPage(customtkinter.CTkFrame):
