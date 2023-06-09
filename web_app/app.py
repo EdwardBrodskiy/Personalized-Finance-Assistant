@@ -1,9 +1,7 @@
-import tkinter
-import tkinter.messagebox
 import customtkinter
 from web_app.ingest_page import IngestPage
 from web_app.db_managment_page import DBManagerPage
-from web_app.analysis_page import AnalysisPage
+from web_app.analysis_page.analysis_page import AnalysisPage
 from database import DataBase
 import os
 

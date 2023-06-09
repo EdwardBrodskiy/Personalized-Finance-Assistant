@@ -1,6 +1,7 @@
 import customtkinter
 from web_app.theme_colors import colors
 
+
 class DataFrameWidget(customtkinter.CTkFrame):
     def __init__(self, master, dataframe, row_of_interest, number_of_neighbors, **kwargs):
         super().__init__(master, **kwargs)
