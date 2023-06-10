@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import pandas as pd
+
 from web_app.theme_colors import colors
 
 
@@ -42,7 +43,7 @@ class Filter(ctk.CTkFrame):
         return is_valid
 
 
-class StringFilter(Filter):
+class StringFilter(Filter):  # TODO: StringFilter does not seem to be working at the query stage
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -61,7 +62,7 @@ class StringFilter(Filter):
 
     def _is_valid_input(self, is_valid=True):
         if len(self.query.get()) < 2:
-            self.is_valid = False
+            is_valid = False
         return super()._is_valid_input(is_valid=is_valid)
 
     def get_query(self):

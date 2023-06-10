@@ -1,13 +1,13 @@
 import customtkinter as ctk
-
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib as mpl
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
 from web_app.components.menu import Menu
 from web_app.components.notification import Notification
 from web_app.helper_functions import get_hex
 from web_app.theme_colors import colors
+
 
 class GraphsDisplay(ctk.CTkFrame):
     def __init__(self, master, dataframe, **kwargs):

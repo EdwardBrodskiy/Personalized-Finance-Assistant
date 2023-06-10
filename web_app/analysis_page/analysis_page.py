@@ -2,6 +2,7 @@ import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from web_app.analysis_page.dataframe_viewer import DataFrameViewer
+from web_app.analysis_page.insights import Insights
 from web_app.components.search import Search
 from web_app.analysis_page.graphs import GraphsDisplay
 
@@ -25,6 +26,9 @@ class AnalysisPage(ctk.CTkScrollableFrame):
         self.graphics = GraphsDisplay(self, self.searched_dataframe)
         self.graphics.pack(fill='x')
 
+        self.insights = Insights(self, self.searched_dataframe)
+        self.insights.pack(fill='x')
+
         # Table preview
         self.table = DataFrameViewer(self, self.searched_dataframe)
         self.table.pack(fill='x')
@@ -43,6 +47,7 @@ class AnalysisPage(ctk.CTkScrollableFrame):
     def on_input_change(self, *args):
         self.graphics.dataframe = self.searched_dataframe
         self.table.dataframe = self.searched_dataframe
+        self.insights.dataframe = self.searched_dataframe
 
     def display_figure(self, fig):
         # Create a canvas
