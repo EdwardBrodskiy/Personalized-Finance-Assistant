@@ -5,9 +5,10 @@ from web_app.theme_colors import colors
 
 
 class Filter(ctk.CTkFrame):
-    def __init__(self, master, column_name, on_remove=None, on_change=None, series: pd.Series = None, **kwargs):
+    def __init__(self, master, column_name, load_state=None, on_remove=None, on_change=None, series: pd.Series = None, **kwargs):
         super().__init__(master, **kwargs)
         self._series = series
+        self.load_state = load_state
 
         self.on_remove_callback = on_remove
         self.on_change_callback = on_change
@@ -42,12 +43,18 @@ class Filter(ctk.CTkFrame):
             self.configure(border_width=0)
         return is_valid
 
+    def serialize(self):
+        raise NotImplementedError('This function should be overriden')
+
+    def _try_load(self, key, default):
+        return self.load_state[key] if self.load_state is not None else default
+
 
 class StringFilter(Filter):  # TODO: StringFilter does not seem to be working at the query stage
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.query = ctk.StringVar(value='')
+        self.query = ctk.StringVar(value=self._try_load('query', ''))
         self.query.trace('w', self._on_change)
         self.entry = ctk.CTkEntry(self.selector_frame, textvariable=self.query)
         self.entry.grid(column=0, row=0, sticky='nswe', padx=5, pady=5)
@@ -69,6 +76,9 @@ class StringFilter(Filter):  # TODO: StringFilter does not seem to be working at
         if self._is_valid_input():
             return lambda series: pd.Series.str.contains(series, self.entry.get(), case=self.case_sensitive.get())
 
+    def serialize(self):
+        return {'query': self.query.get()}
+
 
 class RangeFilter(Filter):
     def __init__(self, *args, **kwargs):
@@ -76,7 +86,7 @@ class RangeFilter(Filter):
 
         self.expected_type = float
 
-        self.lower_bound = ctk.StringVar(value='')
+        self.lower_bound = ctk.StringVar(value=self._try_load('lower_bound', ''))
         self.lower_bound.trace('w', self._on_change)
         self.lb_entry = ctk.CTkEntry(self.selector_frame, textvariable=self.lower_bound)
         self.lb_entry.grid(column=0, row=0, sticky='nswe', padx=5, pady=5)
@@ -84,7 +94,7 @@ class RangeFilter(Filter):
         self.separator_label = ctk.CTkLabel(self.selector_frame, text=f'<  {self.selected_column.cget("text")}  <')
         self.separator_label.grid(column=1, row=0)
 
-        self.upper_bound = ctk.StringVar(value='')
+        self.upper_bound = ctk.StringVar(value=self._try_load('upper_bound', ''))
         self.upper_bound.trace('w', self._on_change)
         self.ub_entry = ctk.CTkEntry(self.selector_frame, textvariable=self.upper_bound)
         self.ub_entry.grid(column=2, row=0, sticky='nswe', padx=5, pady=5)
@@ -122,6 +132,12 @@ class RangeFilter(Filter):
             elif upper_bound is not None:
                 return lambda series: series <= upper_bound
 
+    def serialize(self):
+        return {
+            'lower_bound': self.lower_bound.get(),
+            'upper_bound': self.upper_bound.get()
+        }
+
 
 class DateTimeFilter(RangeFilter):
     def __init__(self, *args, **kwargs):
@@ -137,7 +153,7 @@ class CategoryFilter(Filter):
         self.true_to_str_ref = {str(cat): cat for cat in self._series.unique()}
         self.categories = {str(cat): None for cat in self._series.unique()}
 
-        self.include = ctk.BooleanVar(value=True)
+        self.include = ctk.BooleanVar(value=self._try_load('include', True))
         self.checkbox = ctk.CTkCheckBox(self.selector_frame, text="Include", command=self._on_change,
                                         variable=self.include, onvalue=True, offvalue=False)
         self.checkbox.pack(side='right', padx=5, pady=5)
@@ -154,6 +170,11 @@ class CategoryFilter(Filter):
         )
         self.new_filter_button.pack(side='right', padx=5, pady=5)
 
+        if self.load_state is not None:
+            for cat in self.load_state['selected_categories']:
+                self.category_selected.set(cat)
+                self._add_category(load_operation=True)
+
     def _is_valid_input(self, is_valid=True):
         if len(self._get_requested_categories()) == 0:
             is_valid = False
@@ -161,9 +182,10 @@ class CategoryFilter(Filter):
 
     def get_query(self):
         if self._is_valid_input():
-            return lambda series: pd.Series.isin(series, self._get_requested_categories())
+            true_requested_categories = [self.true_to_str_ref[cat] for cat in self._get_requested_categories()]
+            return lambda series: pd.Series.isin(series, true_requested_categories)
 
-    def _add_category(self):
+    def _add_category(self, load_operation=False):
         category = self.category_selected.get()
         self.categories[category] = ctk.CTkButton(
             self.selector_frame,
@@ -173,7 +195,8 @@ class CategoryFilter(Filter):
         )
         self.categories[category].pack(side='left', padx=5, pady=5)
         print('on change')
-        self._on_change()
+        if not load_operation:
+            self._on_change()
         self.update_options_menu()
 
     def _remove_category(self, category):
@@ -203,6 +226,12 @@ class CategoryFilter(Filter):
             self.category_options.configure(state='disabled')
             self.new_filter_button.configure(state='disabled')
             self.category_selected.set("You've selected all of the categories")
+
+    def serialize(self):
+        return {
+            'selected_categories': self._get_selected_categories(),
+            'include': self.include.get()
+        }
 
 
 type_mappings = {

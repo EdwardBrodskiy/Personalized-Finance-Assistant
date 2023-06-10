@@ -46,7 +46,10 @@ class AnalysisPage(ctk.CTkScrollableFrame):
 
     def on_input_change(self, *args):
         self.graphics.dataframe = self.searched_dataframe
+
         self.table.dataframe = self.searched_dataframe
+        self.table.current_name = self.search.file_name.get()
+
         self.insights.dataframe = self.searched_dataframe
 
     def display_figure(self, fig):
