@@ -15,9 +15,11 @@ database_types = {
 
 merged_types = {
     'ref': np.int64,
-    'Tags': 'object',
+    'Who': 'category',
+    'What': 'category',
     'Description': 'string',
     'Amount': np.float64,
+    'Sub Account': 'string'
 }
 
 off_record_types = {

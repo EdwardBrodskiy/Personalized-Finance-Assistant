@@ -181,12 +181,24 @@
           "Automatic"
         ]
       }
-    },
+    }
+  },
+  {
     "life": {
       "Tags": {
         "~Has": 0,
         "~Any": [
           "existence"
+        ]
+      }
+    }
+  },
+  {
+    "existence": {
+      "Tags": {
+        "~Any": [
+          "existence",
+          "life"
         ]
       }
     }

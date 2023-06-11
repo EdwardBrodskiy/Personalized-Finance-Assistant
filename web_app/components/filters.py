@@ -194,7 +194,7 @@ class CategoryFilter(Filter):
             width=0
         )
         self.categories[category].pack(side='left', padx=5, pady=5)
-        print('on change')
+
         if not load_operation:
             self._on_change()
         self.update_options_menu()

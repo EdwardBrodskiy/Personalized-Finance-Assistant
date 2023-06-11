@@ -1,13 +1,17 @@
-from structures import merged_types, database_types
 import json
-import pandas as pd
-import numpy as np
-from itertools import zip_longest
 import math
+import os
+from collections import Counter
+from itertools import zip_longest, chain
+
+import pandas as pd
+
+from classifier.tag_rules_parser import rule_to_selector
+from structures import merged_types
 
 
 class Classifier:
-    expected_fields = ('ref', 'Who', 'What', 'Description', 'Amount', 'Sub Account')
+    expected_fields = ('ref', 'Description', 'Amount', 'Tags')
 
     def __init__(self, db):
         self.existence = []
@@ -18,6 +22,7 @@ class Classifier:
         self.auto_existence_labeled = pd.DataFrame()
         self.un_labeled = pd.DataFrame()
         self.part_labeled = pd.DataFrame()
+        self._automatically_labeled = pd.DataFrame()
 
         self.labeled_data = pd.DataFrame(merged_types, index=[])
         self.labeled_data = self.labeled_data.astype(merged_types)
@@ -28,30 +33,34 @@ class Classifier:
 
         # labeled = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
 
-        un_labeled = joined[joined['_merge'] == 'left_only'].dropna(axis=1, how='all')
+        un_labeled = joined[joined['_merge'] == 'left_only']  # .dropna(axis=1, how='all')
         if un_labeled.empty:
             return None
-
-        un_labeled = un_labeled.drop('_merge', axis=1)
-
         un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
 
-        auto_existence_labeled, un_labeled = self.classify_existence_certain(un_labeled)
-        self.auto_existence_labeled = auto_existence_labeled
-        self.un_labeled = un_labeled
+        with open(os.path.join('classification_data', 'tag_rules.json')) as file:
+            tag_rules = json.load(file)
 
-        self.setup_for_manual_classification()
+        tagged_data = self._tag_data_based_on_rules(tag_rules, un_labeled)
+
+        tagged_data['Amount'] = tagged_data['Value']
+
+        self._automatically_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' in x)]
+
+        self.un_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' not in x)]
+
+        self.part_labeled = self.un_labeled[list(merged_types.keys())]
 
     @staticmethod
     def classify_existence_certain(data: pd.DataFrame):
-        with open('classification_data/certain_existence.json') as file:
+        with open('./classification_data/certain_existence.json') as file:
             existence_keys = json.load(file)
 
         labeled_data = pd.DataFrame(merged_types, index=[])
         labeled_data = labeled_data.astype(merged_types)
 
         for who, keys in existence_keys.items():
-            print(data)
+            print(data.columns)
             identified = data[data['Description'].str.contains('|'.join(keys))]
             if len(identified):
                 labeled = pd.DataFrame({
@@ -67,6 +76,7 @@ class Classifier:
                 labeled_data = pd.concat([labeled_data, labeled], ignore_index=True)
 
         # remove double classified data
+        # TODO: work out if this is important
         dups = labeled_data.duplicated(subset=['ref'])
         duplicated_rows = labeled_data[labeled_data['ref'].isin(labeled_data[dups]['ref'])]
         labeled_data = labeled_data.drop(index=duplicated_rows.index)
@@ -76,52 +86,33 @@ class Classifier:
 
         return labeled_data, data
 
-    def setup_for_manual_classification(self):
-        with open('classification_data/life.json') as file:
-            life_keys = json.load(file)
+    @staticmethod
+    def _tag_data_based_on_rules(tag_rules, data: pd.DataFrame):
+        print(data.info)
+        for tag_rules_level in tag_rules:
+            for tag, columns in tag_rules_level.items():
+                for column, rules in columns.items():
+                    prev_selector = None
+                    for rule_key, inputs in rules.items():
+                        selector = rule_to_selector(rule_key, inputs)(data[column])
+                        if prev_selector is not None:
+                            selector = prev_selector & selector
+                        prev_selector = selector
+                    data.loc[selector, 'Tags'] = data.loc[selector, 'Tags'].apply(
+                        lambda x: x + [tag] if type(x) is list else [tag])
 
-        part_labeled = pd.DataFrame(merged_types, index=[])
-        part_labeled = part_labeled.astype(merged_types)
-
-        for who, keys in life_keys.items():
-            if not keys:
-                continue
-            identified = self.un_labeled[self.un_labeled['Description'].str.contains('|'.join(keys))]
-            if len(identified):
-                labeled = pd.DataFrame({
-                    'ref': identified['ref'].reset_index(drop=True),
-                    'Who': pd.Series(who, index=range(len(identified))),
-                    'What': pd.Series('', index=range(len(identified))),
-                    'Description': pd.Series('', index=range(len(identified))),
-                    'Amount': identified['Value'].reset_index(drop=True),
-                    'Sub Account': pd.Series('life', index=range(len(identified))),
-
-                })
-                labeled = labeled.astype(merged_types)
-                part_labeled = pd.concat([part_labeled, labeled], ignore_index=True)
-
-        self.part_labeled = part_labeled
+        return data
 
     def get_entry_prerequisites_for_manual_entry(self, index):
         row = self.un_labeled.iloc[index]
-        part_labeled_row = self.part_labeled[self.part_labeled['ref'] == row['ref']]
-
-        if not len(part_labeled_row):
-            part_labeled_row = pd.DataFrame({
-                'ref': [row['ref']],
-                'Who': [''],
-                'What': [''],
-                'Description': [''],
-                'Amount': [row['Value']],
-                'Sub Account': ['existence'],
-
-            })
-        else:
-            part_labeled_row = part_labeled_row.reset_index().iloc[0]  # extract the single row
-            part_labeled_row = part_labeled_row.to_frame().T.drop('index',
-                                                                  axis=1)  # and make it into a len 1 data frame
-        mappings = {key: list(self.merged[key].value_counts().keys()) for key in ('Who', 'What', 'Sub Account')}
-        return part_labeled_row, mappings
+        row = pd.DataFrame(row).T.reset_index()
+        # extract tags in common order in the relative scope of manual labeling
+        non_automatically_labeled_rows = self.merged[self.merged['Tags'].apply(lambda x: 'Automatic' not in x)]
+        all_tags = list(chain.from_iterable(non_automatically_labeled_rows['Tags']))  # Flatten the list of tags
+        tag_counts = Counter(all_tags)  # Count the frequency of each tag
+        tag_counts_ordered = tag_counts.most_common()  # Order by popularity (most common first)
+        only_tags = [tag for tag, _ in tag_counts_ordered]
+        return row, {'Tags': only_tags}
 
     @staticmethod
     def _process_category(mapping, entry, key):
@@ -175,7 +166,7 @@ class Classifier:
         new_data = pd.DataFrame(data)
         new_data.astype(merged_types)
         self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
-        self.labeled_data.to_csv('display_files/user_labeled_backup.csv')
+        self.labeled_data.to_csv(os.path.join('display_files', 'user_labeled_backup.csv'))
 
     def classify_off_record(self):
         pass

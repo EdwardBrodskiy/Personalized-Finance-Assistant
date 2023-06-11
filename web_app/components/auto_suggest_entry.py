@@ -1,12 +1,12 @@
-import customtkinter
+import customtkinter as ctk
 
 
-class AutoSuggestEntry(customtkinter.CTkEntry):
+class AutoSuggestEntry(ctk.CTkEntry):
     def __init__(self, master, suggestions_pane, suggestions=None, **kwargs):
         super().__init__(master, **kwargs)
         self.suggestions_pane = suggestions_pane
-        self.suggestions = suggestions if suggestions else []
-        self.var = customtkinter.StringVar()
+        self._suggestions = suggestions if suggestions else []
+        self.var = ctk.StringVar()
         self.configure(textvariable=self.var)
         self.var.trace_add("write", self.show_suggestions)
         self.labels_frame = None
@@ -18,10 +18,20 @@ class AutoSuggestEntry(customtkinter.CTkEntry):
         self.bind("<Down>", self.move_selection_down)
         self.bind("<Return>", self.select_suggestion)
 
+    @property
+    def suggestions(self):
+        return self._suggestions
+
+    @suggestions.setter
+    def suggestions(self, value):
+        self._suggestions = value
+        if self.winfo_children():
+            self.show_suggestions()
+
     def show_suggestions(self, *args):
         self.selected_label_index = -1
         if not self.labels_frame:
-            self.labels_frame = customtkinter.CTkFrame(self.suggestions_pane, fg_color='transparent')
+            self.labels_frame = ctk.CTkFrame(self.suggestions_pane, fg_color='transparent')
             self.labels_frame.pack()
 
             self.labels_frame.grid_columnconfigure(0, weight=1)
@@ -30,13 +40,13 @@ class AutoSuggestEntry(customtkinter.CTkEntry):
             widget.destroy()
 
         query = self.var.get().lower()
-        suggestions = [word for word in self.suggestions if word.lower().startswith(query)]
+        suggestions = [word for word in self.suggestions if word.lower().startswith(query)][:6]
 
         self.suggested = tuple(suggestions)
         for index, suggestion in enumerate(suggestions):
-            label = customtkinter.CTkLabel(self.labels_frame, text=suggestion, padx=3, pady=3,
-                                           width=self.labels_frame.cget('width'),
-                                           anchor='w')
+            label = ctk.CTkLabel(self.labels_frame, text=suggestion, padx=3, pady=3,
+                                 width=self.labels_frame.cget('width'),
+                                 anchor='w')
             label.bind("<Button-1>", lambda event, text=suggestion: self.select_suggestion(event, text))
             label.bind("<Enter>", lambda event, index=index: self.highlight_label(index))
             label.bind("<Leave>", lambda event: self.highlight_label(-1))
@@ -66,7 +76,7 @@ class AutoSuggestEntry(customtkinter.CTkEntry):
             if not text:
                 text = self.suggested[self.selected_label_index]
             self.var.set(text)
-            self.icursor(customtkinter.END)
+            self.icursor(ctk.END)
             self.hide_suggestions()
 
     def highlight_label(self, index):
@@ -77,5 +87,5 @@ class AutoSuggestEntry(customtkinter.CTkEntry):
                 label.configure(fg_color="transparent")
 
     def destroy(self):
-        customtkinter.CTkEntry.destroy(self)
+        ctk.CTkEntry.destroy(self)
         self.hide_suggestions(None)

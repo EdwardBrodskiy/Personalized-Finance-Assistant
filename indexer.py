@@ -1,7 +1,7 @@
 import csv
 import pandas as pd
 import numpy as np
-from structures import mp, database_types
+from old_structures import mp, database_types
 import logging
 from database import DataBase
 

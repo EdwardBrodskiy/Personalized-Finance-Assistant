@@ -1,11 +1,13 @@
-import customtkinter
 from collections import OrderedDict
-from classifier_for_gui import Classifier
+
+import customtkinter
+
+from classifier.rule_classifier import Classifier
 from indexer import index as index_input_data
-from web_app.components.auto_suggest_entry import AutoSuggestEntry
+from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
 from web_app.components.dataframe_widget import DataFrameWidget
-from web_app.popups.error_popup import ErrorPopup
 from web_app.helper_functions import ordinal
+from web_app.popups.error_popup import ErrorPopup
 
 
 class IngestPage(customtkinter.CTkFrame):
@@ -133,12 +135,9 @@ class RowEntry(customtkinter.CTkFrame):
         self.fields = OrderedDict(
             (
                 ('ref', customtkinter.CTkLabel(self, anchor='w')),
-                ('Who', AutoSuggestEntry(self, self.suggestions_pane, suggestions=suggestions['Who'])),
-                ('What', AutoSuggestEntry(self, self.suggestions_pane, suggestions=suggestions['What'])),
                 ('Description', customtkinter.CTkEntry(self, width=300)),
                 ('Amount', customtkinter.CTkEntry(self)),
-                ('Sub Account', AutoSuggestEntry(self, self.suggestions_pane, suggestions=suggestions['Sub Account'])),
-
+                ('Tags', AutoSuggestTagEntry(self, self.suggestions_pane, suggestions=suggestions['Tags']))
             )
         )
 
@@ -155,6 +154,7 @@ class RowEntry(customtkinter.CTkFrame):
         if self.first_table_draw:
             self.columnconfigure(list(range(len(self.fields))), weight=1)
             self.columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
+            self.columnconfigure(list(self.fields.keys()).index('Tags'), weight=10)
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
 

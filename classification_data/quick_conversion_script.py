@@ -8,7 +8,7 @@ def main():
     with open('life.json') as file:
         non_certain = json.load(file)
 
-    new_tag_system = [{}, {}, {}]
+    new_tag_system = [{}, {}, {}, {}, {}]
 
     for tag, include_rule in certain.items():
         if include_rule:
@@ -38,10 +38,16 @@ def main():
         }
     }
 
-    new_tag_system[2]['life'] = {
+    new_tag_system[3]['life'] = {
         'Tags': {
             '~Has': 0,
             '~Any': ['existence']
+        }
+    }
+
+    new_tag_system[4]['existence'] = {
+        'Tags': {
+            '~Any': ['existence', 'life']
         }
     }
 

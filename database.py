@@ -1,7 +1,10 @@
-import pandas as pd
+import ast
 import logging
-from structures import database_types, merged_types
 import os
+
+import pandas as pd
+
+from structures import database_types, merged_types
 
 
 class DataBase:
@@ -14,7 +17,7 @@ class DataBase:
             confirmation = input('I know what I am doing! I want to run on main database: ') == 'yes'
 
         if confirmation:
-            self.__path = 'database/protected'
+            self.__path = os.path.join('database', 'protected')
         else:
             raise FileNotFoundError('Remove run on main!')
 
@@ -22,16 +25,17 @@ class DataBase:
         self.__path = 'database'
 
     def get_database(self):
-        database = pd.read_csv(f'{self.__path}/all.csv', index_col='key')
+        database = pd.read_csv(os.path.join(self.__path, 'all.csv'), index_col='key')
         database['ref'] = database.index
         return database.astype(database_types)
 
     def get_merged(self):
-        merged = pd.read_csv(f'{self.__path}/merged.csv', index_col='key')
+        merged = pd.read_csv(os.path.join(self.__path, 'merged.csv'), index_col='key')
+        merged['Tags'] = merged['Tags'].apply(lambda x: ast.literal_eval(x))
         return merged.astype(merged_types)
 
     def get_off_record(self):
-        cash = pd.read_csv(f'{self.__path}/cash.csv', index_col='key')
+        cash = pd.read_csv(os.path.join(self.__path, 'cash.csv'), index_col='key')
         return cash.astype(merged_types)
 
     def add_to_database(self, new_items: pd.DataFrame):
@@ -54,13 +58,13 @@ class DataBase:
         if len(new_items):
             # Load and back-up
 
-            old_items.to_csv(f'{self.__path}/previous_{where}.csv')
+            old_items.to_csv(os.path.join(self.__path, f'previous_{where}.csv'))
 
             # Merge and Save
             new_database = pd.concat([old_items, new_items], ignore_index=True)
 
             new_database.index.name = 'key'
-            new_database.to_csv(f'{self.__path}/{where}.csv')
+            new_database.to_csv(os.path.join(self.__path, f'{where}.csv'))
 
             logging.info(f'Saved {where} with {len(new_items)} new rows')
         else:
@@ -68,21 +72,14 @@ class DataBase:
 
     def reset_database(self):
         old_items = self.get_database()
-        old_items.to_csv(f'{self.__path}/previous_all.csv')
-        with open(f'{self.__path}/all.csv', 'w+') as file:
+        old_items.to_csv(os.path.join(self.__path, 'previous_all.csv'))
+        with open(os.path.join(self.__path, 'all.csv'), 'w+') as file:
             file.write('key,Date,Type,Description,Value,Balance,Account Name,Account Number')
             logging.warning(f'Just reset merged at {self.__path}/previous_all.csv')
 
     def reset_merged(self):
         old_items = self.get_merged()
-        old_items.to_csv(f'{self.__path}/previous_merged.csv')
-        with open(f'{self.__path}/merged.csv', 'w+') as file:
+        old_items.to_csv(os.path.join(self.__path, 'previous_merged.csv'))
+        with open(os.path.join(self.__path, 'merged.csv'), 'w+') as file:
             file.write('key,ref,Who,What,Description,Amount,Sub Account')
             logging.warning(f'Just reset merged at {self.__path}/previous_merged.csv')
-
-    def _reset(self, what, columns):
-        old_items = self.get_merged()
-        old_items.to_csv(f'{self.__path}/previous_{what}.csv')
-        with open(f'{self.__path}/merged.csv', 'w+') as file:
-            file.write(','.join(('key', *columns.keys())))
-            logging.warning(f'Just reset {what} at {self.__path}/previous_{what}.csv')
