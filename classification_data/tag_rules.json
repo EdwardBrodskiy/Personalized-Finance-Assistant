@@ -1,0 +1,194 @@
+[
+  {
+    "TV Licensing": {
+      "Description": {
+        "Includes": [
+          "TVLICENSING.CO.UK"
+        ]
+      }
+    },
+    "British Gas": {
+      "Description": {
+        "Includes": [
+          "BRITISH GAS"
+        ]
+      }
+    },
+    "Council Tax": {
+      "Description": {
+        "Includes": [
+          "L/B OF LAMBETH"
+        ]
+      }
+    },
+    "Thames Water": {
+      "Description": {
+        "Includes": [
+          "THAMES WATER"
+        ]
+      }
+    },
+    "Travel": {
+      "Description": {
+        "Includes": [
+          "TRAVEL",
+          "ARRIVA THE SHIRES",
+          "UBER",
+          "NATIONAL EXPRESS"
+        ]
+      }
+    },
+    "VPN": {
+      "Description": {
+        "Includes": [
+          "VPN"
+        ]
+      }
+    },
+    "Food Shop": {
+      "Description": {
+        "Includes": [
+          "SAINSBURY",
+          "CO-OP",
+          "TESCO",
+          "M AND S",
+          "MARKS AND SPENCER",
+          "MARKS&SPENCER",
+          "CKAZKA",
+          "WILKO RETAIL",
+          "PAYLESS FOOD AND , WINE",
+          "M&S",
+          "WAITROSE"
+        ]
+      }
+    },
+    "Food Venue": {
+      "Description": {
+        "Includes": [
+          "HALF MOON",
+          "CHINATOWN BAKERY",
+          "COSTA",
+          "DAEBAK",
+          "WEST GROVE CAFE",
+          "CHINESE OVERSEAS , RESTA",
+          "BUY FOODS , SUPERMARKET",
+          "FENTIMAN",
+          "LUSITANA",
+          "SHOP AND GO",
+          "DELIVEROO",
+          "THE COFFEE ROOM",
+          "PRET A MANGER",
+          "GAILS"
+        ]
+      }
+    },
+    "ISP": {
+      "Description": {
+        "Includes": [
+          "O2",
+          "VIRGIN MEDIA"
+        ]
+      }
+    },
+    "Fencing": {
+      "Description": {
+        "Includes": [
+          "QUEEN MARY , STUDENTS UNIO GB"
+        ]
+      }
+    },
+    "Other Service": {
+      "Description": {
+        "Includes": [
+          "HEALTHMATIC",
+          "BLETCHL"
+        ]
+      }
+    },
+    "AliExpress": {
+      "Description": {
+        "Includes": [
+          "ALIEXPRESS"
+        ]
+      }
+    },
+    "Ebay": {
+      "Description": {
+        "Includes": [
+          "EBAY"
+        ]
+      }
+    },
+    "Other Online Store": {
+      "Description": {
+        "Includes": [
+          "LTT STORE",
+          "ETSY.COM",
+          "SHENZHENAUDIO",
+          "THEPIHUT"
+        ]
+      }
+    },
+    "Amazon": {
+      "Description": {
+        "Includes": [
+          "AUDIBLE",
+          "AMZN MKTP",
+          "AMZNMKTPLACE",
+          "AMAZON"
+        ]
+      }
+    },
+    "Other Offline Store": {
+      "Description": {
+        "Includes": [
+          "SIDEQUEST",
+          "MUJI"
+        ]
+      }
+    },
+    "Prusa": {
+      "Description": {
+        "Includes": [
+          "PRUSA RESEARCH"
+        ]
+      }
+    }
+  },
+  {
+    "Automatic": {
+      "Tags": {
+        "Any": [
+          "TV Licensing",
+          "British Gas",
+          "Council Tax",
+          "Thames Water",
+          "Travel",
+          "VPN",
+          "Food Shop",
+          "Food Venue",
+          "ISP",
+          "Fencing",
+          "Other Service"
+        ]
+      }
+    }
+  },
+  {
+    "existence": {
+      "Tags": {
+        "Any": [
+          "Automatic"
+        ]
+      }
+    },
+    "life": {
+      "Tags": {
+        "~Has": 0,
+        "~Any": [
+          "existence"
+        ]
+      }
+    }
+  }
+]
