@@ -25,18 +25,28 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # create tabview
-        self.pages = {'Ingest': IngestPage, 'DB Management': DBManagerPage, 'Analysis': AnalysisPage}
-        self.tabview = customtkinter.CTkTabview(self)
+        self.page_classes = {'Ingest': IngestPage, 'DB Management': DBManagerPage, 'Analysis': AnalysisPage}
+        self.pages = {key: None for key in self.page_classes}
+        self.tabview = customtkinter.CTkTabview(self, command=self._on_tab_select)
         self.tabview.grid(row=0, column=0, columnspan=2, padx=20, pady=(0, 20), sticky="nsew")
-        self.setup_tabs()
 
-    def setup_tabs(self):
-        for key, page_class in self.pages.items():
+        for key in self.page_classes:
             self.tabview.add(key)
             self.tabview.tab(key).grid_rowconfigure(0, weight=1)
             self.tabview.tab(key).grid_columnconfigure(0, weight=1)
 
-            self.pages[key] = page_class(self.tabview.tab(key), self.db)
-            self.pages[key].grid(row=0, column=0, columnspan=2, padx=0, pady=0, sticky="nsew")
+        self.tabview.set('Ingest')
+        self._on_tab_select()
 
-        # self.tabview.set('Analysis')  # TODO: remove added for dev purposes only
+    def _on_tab_select(self):
+        key = self.tabview.get()
+        page_class = self.page_classes[key]
+
+        for k , page in self.pages.items():
+            if k != key and page is not None:
+                page.destroy()
+                self.pages[k] = None
+
+        self.pages[key] = page_class(self.tabview.tab(key), self.db)
+        self.pages[key].grid(row=0, column=0, columnspan=2, padx=0, pady=0, sticky="nsew")
+
