@@ -34,10 +34,6 @@ class IngestPage(customtkinter.CTkFrame):
                                                            padx=10, pady=10)
         self.lb_classifier_result.grid(row=1, column=0, sticky='e')
 
-        # suggestions pane
-        self.suggestions_pane = customtkinter.CTkScrollableFrame(self)
-        self.suggestions_pane.pack(side='right', fill='y')
-
         self.ingest_label = customtkinter.CTkLabel(self, text='Press "Run Classifier" to begin the ingest process.')
         self.ingest_label.pack(side='top')
         self.ingest_process = None
@@ -52,7 +48,7 @@ class IngestPage(customtkinter.CTkFrame):
             self.bt_run_classifier.configure(text='Finish and save')
 
             self.ingest_label.pack_forget()
-            self.ingest_process = IngestProcess(self, self.classifier, self.suggestions_pane, height=2000)
+            self.ingest_process = IngestProcess(self, self.classifier, height=2000)
             self.ingest_process.pack(side='top', fill='both')
 
             self.ingest_process_active = True

@@ -6,14 +6,14 @@ from web_app.ui.Button import Button
 
 
 class AutoSuggestTagEntry(ctk.CTkFrame):
-    def __init__(self, master, suggestions_pane, suggestions=None, selected=(), **kwargs):
+    def __init__(self, master, suggestions=None, selected=(), **kwargs):
         super().__init__(master, **kwargs)
         self.suggestions = suggestions
 
         self.grid_columnconfigure(1, weight=1)
         self.tags = {tag: None for tag in self.suggestions}
 
-        self.entry = AutoSuggestEntry(self, suggestions_pane, suggestions=self._get_unselected_suggestions())
+        self.entry = AutoSuggestEntry(self, suggestions=self._get_unselected_suggestions())
         self.entry.grid(column=0, row=0, sticky='news')
 
         self.tag_frame = ctk.CTkFrame(self)

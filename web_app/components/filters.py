@@ -1,11 +1,15 @@
 import customtkinter as ctk
 import pandas as pd
 
+from classifier.tag_rules_parser import rule_to_selector
+from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
+from web_app.helper_functions import extract_tags
 from web_app.theme_colors import colors
 
 
 class Filter(ctk.CTkFrame):
-    def __init__(self, master, column_name, load_state=None, on_remove=None, on_change=None, series: pd.Series = None, **kwargs):
+    def __init__(self, master, column_name, load_state=None, on_remove=None, on_change=None, series: pd.Series = None,
+                 **kwargs):
         super().__init__(master, **kwargs)
         self._series = series
         self.load_state = load_state
@@ -234,10 +238,127 @@ class CategoryFilter(Filter):
         }
 
 
+class CategoryFilter(Filter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.true_to_str_ref = {str(cat): cat for cat in self._series.unique()}
+        self.categories = {str(cat): None for cat in self._series.unique()}
+
+        self.include = ctk.BooleanVar(value=self._try_load('include', True))
+        self.checkbox = ctk.CTkCheckBox(self.selector_frame, text="Include", command=self._on_change,
+                                        variable=self.include, onvalue=True, offvalue=False)
+        self.checkbox.pack(side='right', padx=5, pady=5)
+
+        available_categories = self._get_unselected_categories()
+        self.category_selected = ctk.StringVar(value=available_categories[0])
+        self.category_options = ctk.CTkOptionMenu(
+            self.selector_frame, values=available_categories, variable=self.category_selected
+        )
+        self.category_options.pack(side='right', padx=5, pady=5)
+
+        self.new_filter_button = ctk.CTkButton(
+            self.selector_frame, text='Select', command=self._add_category
+        )
+        self.new_filter_button.pack(side='right', padx=5, pady=5)
+
+        if self.load_state is not None:
+            for cat in self.load_state['selected_categories']:
+                self.category_selected.set(cat)
+                self._add_category(load_operation=True)
+
+    def _is_valid_input(self, is_valid=True):
+        if len(self._get_requested_categories()) == 0:
+            is_valid = False
+        return super()._is_valid_input(is_valid=is_valid)
+
+    def get_query(self):
+        if self._is_valid_input():
+            true_requested_categories = [self.true_to_str_ref[cat] for cat in self._get_requested_categories()]
+            return lambda series: pd.Series.isin(series, true_requested_categories)
+
+    def _add_category(self, load_operation=False):
+        category = self.category_selected.get()
+        self.categories[category] = ctk.CTkButton(
+            self.selector_frame,
+            text=category,
+            command=lambda: self._remove_category(category),
+            width=0
+        )
+        self.categories[category].pack(side='left', padx=5, pady=5)
+
+        if not load_operation:
+            self._on_change()
+        self.update_options_menu()
+
+    def _remove_category(self, category):
+        self.categories[category].destroy()
+        self.categories[category] = None
+        self._on_change()
+        self.update_options_menu()
+
+    def _get_requested_categories(self):
+        if self.include.get():
+            return self._get_selected_categories()
+        return self._get_unselected_categories()
+
+    def _get_unselected_categories(self):
+        return list(map(lambda kv: kv[0], filter(lambda kv: kv[1] is None, self.categories.items())))
+
+    def _get_selected_categories(self):
+        return list(map(lambda kv: kv[0], filter(lambda kv: kv[1] is not None, self.categories.items())))
+
+    def update_options_menu(self):
+        available_columns = self._get_unselected_categories()
+        if available_columns:
+            self.category_selected.set(available_columns[0])
+            self.category_options.configure(values=available_columns, state='normal')
+            self.new_filter_button.configure(state='normal')
+        else:
+            self.category_options.configure(state='disabled')
+            self.new_filter_button.configure(state='disabled')
+            self.category_selected.set("You've selected all of the categories")
+
+    def serialize(self):
+        return {
+            'selected_categories': self._get_selected_categories(),
+            'include': self.include.get()
+        }
+
+
+class TagFilter(Filter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tags = extract_tags(self._series)
+
+        self.tag_entry = AutoSuggestTagEntry(self.selector_frame, suggestions=self.tags, selected=self._try_load('selected_tags', ()), height=20)
+        self.tag_entry.pack(side='left', fill='x', padx=5, pady=5)
+
+        self.include = ctk.BooleanVar(value=self._try_load('include', True))
+        self.checkbox = ctk.CTkCheckBox(self.selector_frame, text="Include", command=self._on_change,
+                                        variable=self.include, onvalue=True, offvalue=False)
+        self.checkbox.pack(side='right', padx=5, pady=5)
+
+    def _is_valid_input(self, is_valid=True):
+        if len(self.tag_entry.get()) == 0:
+            is_valid = False
+        return super()._is_valid_input(is_valid=is_valid)
+
+    def get_query(self):
+        if self._is_valid_input():
+            return rule_to_selector('Any', self.tag_entry.get())
+
+    def serialize(self):
+        return {
+            'selected_tags': self.tag_entry.get(),
+            'include': self.include.get()
+        }
+
+
 type_mappings = {
     'string': StringFilter,
     'float64': RangeFilter,
     'int64': RangeFilter,
     'datetime64[ns]': DateTimeFilter,
-    'category': CategoryFilter
+    'category': CategoryFilter,
+    'object': TagFilter
 }

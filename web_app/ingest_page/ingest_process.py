@@ -6,7 +6,7 @@ from web_app.ingest_page.row_entry import RowEntry
 
 
 class IngestProcess(customtkinter.CTkScrollableFrame):
-    def __init__(self, master, classifier, suggestions_pane, **kwargs):
+    def __init__(self, master, classifier, **kwargs):
         super().__init__(master, **kwargs)
         self.classifier = classifier
 
@@ -15,7 +15,7 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
 
         # Entry
 
-        self.row_entry = RowEntry(self, suggestions_pane, on_enter=self.data_entered)
+        self.row_entry = RowEntry(self, on_enter=self.data_entered)
         self.row_entry.pack(fill='both', expand=True)
 
         # Reference

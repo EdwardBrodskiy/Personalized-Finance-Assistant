@@ -5,7 +5,7 @@ from matplotlib.figure import Figure
 
 from web_app.components.menu import Menu
 from web_app.components.notification import Notification
-from web_app.helper_functions import get_hex
+from web_app.helper_functions import get_hex, extract_tags
 from web_app.theme_colors import colors
 
 
@@ -60,24 +60,20 @@ class GraphsDisplay(ctk.CTkFrame):
         self.graphic_controls_plot.grid(column=0, row=0, sticky='new', padx=5, pady=5)
 
         self.category_columns = self._dataframe.select_dtypes(['category']).columns
+        self.max_cats = ctk.StringVar(value='10')
+        self.max_cats.trace_add('write', self._on_input_change)
         self.graphic_controls_pie = Menu(self.settings, {
-            'category': (
-                'OptionMenu',
-                'x axis variable',
+            'positive_values': (
+                'Toggle',
+                'Use positive values only',
                 {
-                    'values': self.dataframe.columns,
-                    'command': self._on_input_change,
-                    'variable': self.x_axis,
+                    'command': self._on_input_change
                 }
             ),
-            'y_axis': (
-                'OptionMenu',
-                'y axis variable',
-                {
-                    'values': self.dataframe.columns,
-                    'command': self._on_input_change,
-                    'variable': self.y_axis,
-                }
+            'max_cats': (
+                'Entry',
+                'Maximum number of categories',
+                {}
             ),
         }, title='Pie Plot')
         self.graphic_controls_pie.grid(column=1, row=0, sticky='new', padx=5, pady=5)
@@ -124,23 +120,57 @@ class GraphsDisplay(ctk.CTkFrame):
             self.ax.legend(fontsize='large')
         except Exception as e:
             Notification(self, f'Error while drawing plot "{e}"')
+            print(e)
 
-        # try:
-        #     df = self.merge_cats(self._dataframe)
-        #     self.ax2.pie(df['Amount'], labels=df.index.tolist())
-        # except Exception as e:
-        #     Notification(self, f'Error while drawing pie plot "{e}"')
+        try:
+            df = self._dataframe.copy()
+            df['cat'] = self._produce_cat_column(self._dataframe)
+            if self.graphic_controls_pie.elements['positive_values'][1].state() == 'off':
+                df['Amount'] = df['Amount'] * -1
+            df = df[df['Amount'] > 0]
+            sums = df.groupby('cat')['Amount'].sum()
+            self.ax2.pie(sums, labels=sums.index)
+        except Exception as e:
+            Notification(self, f'Error while drawing pie plot "{e}"')
+            print(e)
+
         # Redraw the canvas
         self.canvas.draw()
 
+    def _produce_cat_column(self, df):
+        # eliminate non informative tags
+        all_tags = list(extract_tags(df['Tags']))
+        for tag_for_removal in all_tags:
+            if GraphsDisplay.is_tag_in_all_rows(df, tag_for_removal):
+                # Remove the tag from each list in the "Tags" column
+                df['Tags'] = df['Tags'].apply(lambda tags: [tag for tag in tags if tag != tag_for_removal])
+
+        cat = df['Tags'].apply(
+            lambda tags: '_'.join(sorted(tags, key=lambda tag: all_tags.index(tag))))
+        # cat = cat.astype('category')
+
+        categories_top = cat.value_counts().index.tolist()[:self.get_max_cats()]
+        print(categories_top)
+        # cat = cat.cat.add_categories('other')
+        return cat.where(cat.isin(categories_top), 'other')
+
+    def get_max_cats(self):
+        value = self.max_cats.get()
+        number = 10
+        try:
+            number = int(value)
+        except TypeError:
+            Notification(self, f'{value} is not a valid integer')
+
+        if number < 2:
+            Notification(self, f"{number} can't be less than 2")
+            number = 10
+
+        return number
+
     @staticmethod
-    def _merge_cats(df, higher_level, lower_level):
-        df = df.copy()
-        who_copy = df[higher_level].cat.add_categories(list(df[lower_level].cat.categories))
-        df[lower_level] = df[lower_level].cat.add_categories(list(df[higher_level].cat.categories))
-        # fill na values with who labels
-        df[lower_level] = df[lower_level].fillna(who_copy)
-        df = df[['What', 'Amount']]
-        df = df.groupby('What').sum()
-        df = df[df['Amount'] < 0] * -1
-        return df
+    def is_tag_in_all_rows(df, tag):
+        for tags in df['Tags']:
+            if tag not in tags:
+                return False
+        return True

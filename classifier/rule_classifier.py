@@ -1,13 +1,13 @@
 import json
 import math
 import os
-from collections import Counter
-from itertools import chain, zip_longest
+from itertools import zip_longest
 
 import pandas as pd
 
 from classifier.tag_rules_parser import rule_to_selector
 from structures import merged_types
+from web_app.helper_functions import extract_tags
 
 
 class Classifier:
@@ -115,11 +115,8 @@ class Classifier:
         row = pd.DataFrame(row).T.reset_index()
         # extract tags in common order in the relative scope of manual labeling
         non_automatically_labeled_rows = self.merged[self.merged['Tags'].apply(lambda x: 'Automatic' not in x)]
-        all_tags = list(chain.from_iterable(non_automatically_labeled_rows['Tags']))  # Flatten the list of tags
-        tag_counts = Counter(all_tags)  # Count the frequency of each tag
-        tag_counts_ordered = tag_counts.most_common()  # Order by popularity (most common first)
-        only_tags = [tag for tag, _ in tag_counts_ordered]
-        return row, {'Tags': only_tags}
+        tags = extract_tags(non_automatically_labeled_rows['Tags'])
+        return row, {'Tags': tags}
 
     @staticmethod
     def _process_category(mapping, entry, key):

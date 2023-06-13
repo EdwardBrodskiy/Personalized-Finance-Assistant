@@ -2,9 +2,9 @@ import customtkinter as ctk
 
 
 class AutoSuggestEntry(ctk.CTkEntry):
-    def __init__(self, master, suggestions_pane, suggestions=None, **kwargs):
+    def __init__(self, master, suggestions=None, max_suggestions=6, **kwargs):
         super().__init__(master, **kwargs)
-        self.suggestions_pane = suggestions_pane
+        self.max_suggestions=max_suggestions
         self._suggestions = suggestions if suggestions else []
         self.var = ctk.StringVar()
         self.configure(textvariable=self.var)
@@ -31,8 +31,8 @@ class AutoSuggestEntry(ctk.CTkEntry):
     def show_suggestions(self, *args):
         self.selected_label_index = -1
         if not self.labels_frame:
-            self.labels_frame = ctk.CTkFrame(self.suggestions_pane, fg_color='transparent')
-            self.labels_frame.pack()
+            self.labels_frame = ctk.CTkFrame(self.winfo_toplevel(), fg_color='transparent', height=0)
+            self.labels_frame.place(in_=self, relx=0.0, rely=1.0, bordermode="outside")
 
             self.labels_frame.grid_columnconfigure(0, weight=1)
 
@@ -40,7 +40,7 @@ class AutoSuggestEntry(ctk.CTkEntry):
             widget.destroy()
 
         query = self.var.get().lower()
-        suggestions = [word for word in self.suggestions if word.lower().startswith(query)][:6]
+        suggestions = [word for word in self.suggestions if word.lower().startswith(query)][:self.max_suggestions]
 
         self.suggested = tuple(suggestions)
         for index, suggestion in enumerate(suggestions):
@@ -89,3 +89,13 @@ class AutoSuggestEntry(ctk.CTkEntry):
     def destroy(self):
         ctk.CTkEntry.destroy(self)
         self.hide_suggestions(None)
+
+
+def get_position(window, widget):
+    x, y = widget.winfo_x(), widget.winfo_y()
+    while widget.master != window:
+        widget = widget.master
+        x += widget.winfo_x()
+        y += widget.winfo_y()
+
+    return x, y

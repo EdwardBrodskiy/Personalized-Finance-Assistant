@@ -30,6 +30,7 @@ class Menu(customtkinter.CTkFrame):
         'Button': customtkinter.CTkButton,
         'Slider': customtkinter.CTkSlider,
         'OptionMenu': customtkinter.CTkOptionMenu,
+        'Entry': customtkinter.CTkEntry,
         'Toggle': Toggle
     }
 

@@ -8,10 +8,9 @@ from web_app.popups.error_popup import ErrorPopup
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, suggestions_pane, on_enter=None, **kwargs):
+    def __init__(self, master, on_enter=None, **kwargs):
         super().__init__(master, **kwargs)
         self.configure(height=150)
-        self.suggestions_pane = suggestions_pane
         self.on_enter = on_enter
 
         self.fields = None
@@ -27,7 +26,7 @@ class RowEntry(customtkinter.CTkFrame):
                 ('ref', customtkinter.CTkLabel(self, anchor='w')),
                 ('Description', customtkinter.CTkEntry(self, width=300)),
                 ('Amount', customtkinter.CTkEntry(self)),
-                ('Tags', AutoSuggestTagEntry(self, self.suggestions_pane, suggestions=suggestions['Tags'], fg_color='navy'))
+                ('Tags', AutoSuggestTagEntry(self, suggestions=suggestions['Tags']))
             )
         )
 
