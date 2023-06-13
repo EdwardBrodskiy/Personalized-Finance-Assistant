@@ -2,7 +2,7 @@ import json
 import math
 import os
 from collections import Counter
-from itertools import zip_longest, chain
+from itertools import chain, zip_longest
 
 import pandas as pd
 
@@ -19,10 +19,9 @@ class Classifier:
         self.db = db
         self.merged = self.db.get_merged()
 
-        self.auto_existence_labeled = pd.DataFrame()
         self.un_labeled = pd.DataFrame()
         self.part_labeled = pd.DataFrame()
-        self._automatically_labeled = pd.DataFrame()
+        self.automatically_labeled = pd.DataFrame()
 
         self.labeled_data = pd.DataFrame(merged_types, index=[])
         self.labeled_data = self.labeled_data.astype(merged_types)
@@ -36,7 +35,11 @@ class Classifier:
         un_labeled = joined[joined['_merge'] == 'left_only']  # .dropna(axis=1, how='all')
         if un_labeled.empty:
             return None
+
+        # for the purposes of tagging use the bank description
         un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
+        un_labeled['Tags'] = un_labeled['Tags'].apply(lambda x: x if isinstance(x, list) else [])
+        un_labeled['Description_y'] = un_labeled['Description_y'].fillna('')
 
         with open(os.path.join('classification_data', 'tag_rules.json')) as file:
             tag_rules = json.load(file)
@@ -44,8 +47,13 @@ class Classifier:
         tagged_data = self._tag_data_based_on_rules(tag_rules, un_labeled)
 
         tagged_data['Amount'] = tagged_data['Value']
+        # for merged switch back and don't use the bank description
+        tagged_data = tagged_data.rename(
+            columns={'Description': 'Description_x', 'Description_y': 'Description'})
 
-        self._automatically_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' in x)]
+        # extract and reformat automatically labeled data
+        self.automatically_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' in x)]
+        self.automatically_labeled = self.automatically_labeled[merged_types.keys()]
 
         self.un_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' not in x)]
 
@@ -88,7 +96,6 @@ class Classifier:
 
     @staticmethod
     def _tag_data_based_on_rules(tag_rules, data: pd.DataFrame):
-        print(data.info)
         for tag_rules_level in tag_rules:
             for tag, columns in tag_rules_level.items():
                 for column, rules in columns.items():
@@ -128,21 +135,31 @@ class Classifier:
 
     @staticmethod
     def process_user_input(data, part_labeled_row: pd.DataFrame):
+        ref, *string_entries, tags = data
 
-        user_input = list(map(lambda x: x.strip(), data))
-        if any(map(lambda x: '|' in x, user_input)):
-            user_inputs = list(map(lambda x: x.split('|'), user_input))
-            user_inputs = [list(map(lambda y: y[key] if len(y) == 2 else y[0], user_inputs)) for key in
-                           range(2)]
-            print(user_inputs)
+        split_tags = [[], []]
+        for tag, assignment in tags:
+            if assignment == 0:
+                split_tags[0].append(tag)
+                split_tags[1].append(tag)
+            else:
+                split_tags[assignment - 1].append(tag)
+        split_tags = list(set(map(tuple, split_tags)))
+
+        string_entries = list(map(str.strip, string_entries))
+        # if either entry has split key character or two non-empty tag groups exist
+        if any(map(lambda x: '|' in x, string_entries)) or len(split_tags) > 1:
+            string_entries = list(map(lambda x: x.split('|'), string_entries))
+            string_entries = [list(map(lambda y: y[key] if len(y) == 2 else y[0], string_entries)) for key in range(2)]
         else:
-            user_inputs = [user_input]
+            string_entries = [string_entries]
 
-        # convert user inputs to keyed data
-        user_inputs = list(map(
-            lambda user_entries: {key: None if value == '' else value for key, value in
-                                  zip_longest(Classifier.expected_fields, user_entries)},
-            user_inputs))
+        user_inputs = [{
+            'ref': ref,
+            'Description': str_entries[0] if string_entries is not None else None,
+            'Amount': str_entries[1] if string_entries is not None else None,
+            'Tags': tag
+        } for str_entries, tag in zip_longest(string_entries, split_tags)]
 
         try:
             amount_sum = sum(map(lambda x: float(x['Amount']), user_inputs))
@@ -157,7 +174,7 @@ class Classifier:
             raise ZeroDivisionError('Bad ratio in Amount')
 
         for i, user_input in enumerate(user_inputs):
-            for column in part_labeled_row.columns:
+            for column in merged_types.keys():
                 if column not in user_input:
                     user_inputs[i][column] = part_labeled_row.at[0, column]
         return user_inputs

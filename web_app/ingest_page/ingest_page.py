@@ -48,7 +48,7 @@ class IngestPage(customtkinter.CTkFrame):
 
             self.lb_classifier_result.configure(
                 text=f'Classification in progress please enter the required manual information. '
-                     f'{len(self.classifier.auto_existence_labeled)} classified automatically')
+                     f'{len(self.classifier.automatically_labeled)} classified automatically')
             self.bt_run_classifier.configure(text='Finish and save')
 
             self.ingest_label.pack_forget()
@@ -60,10 +60,10 @@ class IngestPage(customtkinter.CTkFrame):
             self.ingest_process.pack_forget()
             self.ingest_label.pack(side='top')
             self.lb_classifier_result.configure(
-                text=f'{len(self.classifier.auto_existence_labeled)} automatic entries saved and {len(self.classifier.labeled_data)} manual entries saved')
+                text=f'{len(self.classifier.automatically_labeled)} automatic entries saved and {len(self.classifier.labeled_data)} manual entries saved')
 
             print(self.classifier.labeled_data)
-            self.db.add_to_merged(self.classifier.auto_existence_labeled)
+            self.db.add_to_merged(self.classifier.automatically_labeled)
             self.db.add_to_merged(self.classifier.labeled_data)
 
             self.ingest_process_active = False

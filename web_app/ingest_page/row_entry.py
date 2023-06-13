@@ -27,24 +27,24 @@ class RowEntry(customtkinter.CTkFrame):
                 ('ref', customtkinter.CTkLabel(self, anchor='w')),
                 ('Description', customtkinter.CTkEntry(self, width=300)),
                 ('Amount', customtkinter.CTkEntry(self)),
-                ('Tags', AutoSuggestTagEntry(self, self.suggestions_pane, suggestions=suggestions['Tags']))
+                ('Tags', AutoSuggestTagEntry(self, self.suggestions_pane, suggestions=suggestions['Tags'], fg_color='navy'))
             )
         )
 
         for i, (key, field) in enumerate(self.fields.items()):
             if self.first_table_draw:
                 label = customtkinter.CTkLabel(self, text=key)
-                label.grid(row=0, column=i, sticky='w')
+                label.grid(row=0, column=i, sticky='w', padx=(0, 5), pady=5)
             if type(field) is customtkinter.CTkLabel:
                 field.configure(text=self.part_labeled_row.at[0, key])
             else:
                 field.insert(0, self.part_labeled_row.at[0, key])
-            field.grid(row=self.row_index, column=i, sticky='nsew')
+            field.grid(row=self.row_index, column=i, sticky='nsew', padx=(0, 5), pady=5)
 
         if self.first_table_draw:
-            self.columnconfigure(list(range(len(self.fields))), weight=1)
-            self.columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
-            self.columnconfigure(list(self.fields.keys()).index('Tags'), weight=10)
+            self.grid_columnconfigure(list(range(len(self.fields))), weight=1)
+            self.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
+            self.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=10)
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
 
@@ -88,7 +88,7 @@ class RowEntry(customtkinter.CTkFrame):
         for row in user_entries:
             for i, (key, value) in enumerate(row.items()):
                 label = customtkinter.CTkLabel(self, text=value)
-                label.grid(row=self.row_index, column=i, sticky='w')
+                label.grid(row=self.row_index, column=i, sticky='w', padx=(0, 5), pady=1)
             self.row_index += 1
 
         if self.on_enter is not None:
