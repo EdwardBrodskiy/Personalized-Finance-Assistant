@@ -73,7 +73,7 @@ class GraphsDisplay(ctk.CTkFrame):
             'max_cats': (
                 'Entry',
                 'Maximum number of categories',
-                {}
+                {'textvariable': self.max_cats}
             ),
         }, title='Pie Plot')
         self.graphic_controls_pie.grid(column=1, row=0, sticky='new', padx=5, pady=5)
@@ -150,7 +150,6 @@ class GraphsDisplay(ctk.CTkFrame):
         # cat = cat.astype('category')
 
         categories_top = cat.value_counts().index.tolist()[:self.get_max_cats()]
-        print(categories_top)
         # cat = cat.cat.add_categories('other')
         return cat.where(cat.isin(categories_top), 'other')
 

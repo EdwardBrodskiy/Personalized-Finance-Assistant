@@ -26,7 +26,8 @@ class RowEntry(customtkinter.CTkFrame):
                 ('ref', customtkinter.CTkLabel(self, anchor='w')),
                 ('Description', customtkinter.CTkEntry(self, width=300)),
                 ('Amount', customtkinter.CTkEntry(self)),
-                ('Tags', AutoSuggestTagEntry(self, suggestions=suggestions['Tags']))
+                ('Tags',
+                 AutoSuggestTagEntry(self, suggestions=suggestions['Tags'], selection_optoins=('', ' - 1', ' - 2')))
             )
         )
 

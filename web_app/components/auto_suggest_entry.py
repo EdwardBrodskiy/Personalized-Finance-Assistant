@@ -18,6 +18,10 @@ class AutoSuggestEntry(ctk.CTkEntry):
         self.bind("<Down>", self.move_selection_down)
         self.bind("<Return>", self.select_suggestion)
 
+    def set(self, value):
+        self.var.set(value)
+        self.icursor(ctk.END)
+        self.hide_suggestions()
     @property
     def suggestions(self):
         return self._suggestions
@@ -75,8 +79,7 @@ class AutoSuggestEntry(ctk.CTkEntry):
         if self.labels_frame and (self.selected_label_index >= 0 or text):
             if not text:
                 text = self.suggested[self.selected_label_index]
-            self.var.set(text)
-            self.icursor(ctk.END)
+            self.set(text)
             self.hide_suggestions()
 
     def highlight_label(self, index):
