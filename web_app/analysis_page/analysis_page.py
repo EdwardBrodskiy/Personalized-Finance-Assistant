@@ -19,7 +19,7 @@ class AnalysisPage(ctk.CTkScrollableFrame):
 
         self.searched_dataframe = self.dataframe.copy()
 
-        self.search = Search(self, self.dataframe, on_search=self.on_new_search)
+        self.search = Search(self, self.dataframe, on_search=self.on_new_search, search_id='analysis_page')
         self.search.pack(fill='x')
 
         # Graphics
