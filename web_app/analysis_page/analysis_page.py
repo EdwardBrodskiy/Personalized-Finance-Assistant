@@ -16,7 +16,7 @@ class AnalysisPage(ctk.CTkScrollableFrame):
         self.canvas = None
 
         self.dataframe = self.get_joined()
-        print(self.db.get_database())
+
         self.searched_dataframe = self.dataframe.copy()
 
         self.search = Search(self, self.dataframe, on_search=self.on_new_search)

@@ -1,9 +1,8 @@
 import customtkinter as ctk
 
 from web_app.components.dataframe_widget import DataFrameWidget
+from web_app.components.notification import Notification
 
-import os
-import subprocess
 
 class DataFrameViewer(ctk.CTkFrame):
     def __init__(self, master, dataframe, **kwargs):
@@ -18,7 +17,7 @@ class DataFrameViewer(ctk.CTkFrame):
 
         self.keep_showing_table = ctk.BooleanVar(value=False)
         self.keep_showing_table_checkbox = ctk.CTkCheckBox(self,
-                                                           text="Don't hide table on change (not good for performance",
+                                                           text="Don't hide table on change (not good for performance)",
                                                            variable=self.keep_showing_table, onvalue=True,
                                                            offvalue=False)
         self.keep_showing_table_checkbox.grid(column=1, row=0, padx=5, pady=5)
@@ -55,11 +54,11 @@ class DataFrameViewer(ctk.CTkFrame):
         if self.table is not None:
             self.table.destroy()
         self.table = DataFrameWidget(self, self.dataframe, 0, 3)
-        self.table.grid(columnspan=4, row=1, column=0, sticky='we', padx=5, pady=5)
+        self.table.grid(columnspan=6, row=1, column=0, sticky='we', padx=5, pady=5)
         self.set_button_states()
 
     def _go_up(self):
-        print('Not implemented')
+        Notification(self, 'Not implemented')
 
     def _go_down(self):
         self.table.scroll_down_one_row()
@@ -67,13 +66,14 @@ class DataFrameViewer(ctk.CTkFrame):
 
     def _save_to_csv(self):
         path = ctk.filedialog.asksaveasfilename(defaultextension=".csv", initialfile=f'{self.current_name}.csv',
-                                                     filetypes=[("CSV Files", "*.csv")], initialdir='display_files')
+                                                filetypes=[("CSV Files", "*.csv")], initialdir='display_files')
 
         self._dataframe.to_csv(path)
 
     def set_button_states(self):
         self._set_button_state(self.show_table_button, self.table is None)
         self._set_button_state(self.up_key, self.table is not None and 0 < self.table.row_of_interest)
+        con = self.table.row_of_interest < len(self.table.dataframe) - 1
         self._set_button_state(self.down_key,
                                self.table is not None and self.table.row_of_interest < len(self.table.dataframe) - 1)
 

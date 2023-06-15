@@ -78,7 +78,7 @@ class StringFilter(Filter):  # TODO: StringFilter does not seem to be working at
 
     def get_query(self):
         if self._is_valid_input():
-            return lambda series: pd.Series.str.contains(series, self.entry.get(), case=self.case_sensitive.get())
+            return lambda series: pd.Series(series).str.contains(self.entry.get(), case=self.case_sensitive.get())
 
     def serialize(self):
         return {'query': self.query.get()}
@@ -291,17 +291,16 @@ class SubTagFilter(Filter):
 
         self.tag_entry = AutoSuggestTagEntry(
             self.selector_frame, suggestions=self.tags, selected=self._try_load('selected_tags', ()), height=20,
-            on_change=self._on_change, tag_selection_options=(' - Incl', ' - Excl')
+            on_change=self._on_change, tag_selection_options=(' - Incl', ' - Excl'), suggestions_only=True
         )
-        self.tag_entry.pack( fill='x', padx=5, pady=5)
+        self.tag_entry.pack(fill='x', padx=5, pady=5)
 
-    def _is_valid_input(self, is_valid=True):
-        if len(self.tag_entry.get()) == 0:
-            is_valid = False
-        return super()._is_valid_input(is_valid=is_valid)
+    # def _is_valid_input(self, is_valid=True):
+    #     if len(self.tag_entry.get()) == 0:
+    #         is_valid = False
+    #     return super()._is_valid_input(is_valid=is_valid)
 
     def get_query(self):
-
         if self._is_valid_input():
             tag_states = self.tag_entry.get()
             include_tags = [key for key, state in tag_states if state == 0]

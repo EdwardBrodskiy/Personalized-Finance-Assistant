@@ -1,15 +1,16 @@
-import customtkinter
+import customtkinter as ctk
+import tkinter as tk
 from web_app.ingest_page.ingest_page import IngestPage
 from web_app.db_managment_page import DBManagerPage
 from web_app.analysis_page.analysis_page import AnalysisPage
 from database import DataBase
 import os
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme(os.path.join('web_app', 'my_theme.json'))
+ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+ctk.set_default_color_theme(os.path.join('web_app', 'my_theme.json'))
 
 
-class App(customtkinter.CTk):
+class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
@@ -17,8 +18,9 @@ class App(customtkinter.CTk):
 
         # configure window
         self.title("Accounts Manager")
+        self.iconphoto(False, tk.PhotoImage(file=os.path.join('web_app', 'icon3.png')) )
         self.geometry(f"{1600}x{1000}")
-        customtkinter.set_widget_scaling(1.2)
+        ctk.set_widget_scaling(1.2)
 
         # create 2x2 grid system
         self.grid_rowconfigure(0, weight=1)
@@ -27,7 +29,7 @@ class App(customtkinter.CTk):
         # create tabview
         self.page_classes = {'Ingest': IngestPage, 'DB Management': DBManagerPage, 'Analysis': AnalysisPage}
         self.pages = {key: None for key in self.page_classes}
-        self.tabview = customtkinter.CTkTabview(self, command=self._on_tab_select)
+        self.tabview = ctk.CTkTabview(self, command=self._on_tab_select)
         self.tabview.grid(row=0, column=0, columnspan=2, padx=20, pady=(0, 20), sticky="nsew")
 
         for key in self.page_classes:

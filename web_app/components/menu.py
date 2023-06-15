@@ -1,5 +1,7 @@
 import customtkinter
 
+from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
+
 '''
 sheet
 key: field name
@@ -31,7 +33,8 @@ class Menu(customtkinter.CTkFrame):
         'Slider': customtkinter.CTkSlider,
         'OptionMenu': customtkinter.CTkOptionMenu,
         'Entry': customtkinter.CTkEntry,
-        'Toggle': Toggle
+        'Toggle': Toggle,
+        'TagEntry': AutoSuggestTagEntry
     }
 
     def __init__(self, master, sheet, title='', **kwargs):
@@ -61,13 +64,13 @@ class Menu(customtkinter.CTkFrame):
             child.destroy()
         self.elements = {}
 
-        self.grid_rowconfigure(list(range(len(self.sheet) + self.title_offset)), weight=1)  # configure grid system
-        self.grid_columnconfigure((0, 1), weight=1)
+        self.grid_rowconfigure(len(self.sheet) + self.title_offset, weight=1)  # configure grid system
+        self.grid_columnconfigure(1, weight=1)
         for index, (key, settings) in enumerate(self.sheet.items()):
             element_type, text, kwargs = settings
             self.elements[key] = (
-                customtkinter.CTkLabel(self, text=text),
-                self.elements_mapping[element_type](self, width=50, **kwargs)
+                customtkinter.CTkLabel(self, text=text, width=len(text)),
+                self.elements_mapping[element_type](self, **kwargs)
             )
             self.elements[key][0].grid(row=index + self.title_offset, column=0, sticky='w', padx=5, pady=5)
             self.elements[key][1].grid(row=index + self.title_offset, column=1, sticky='e', padx=5, pady=5)

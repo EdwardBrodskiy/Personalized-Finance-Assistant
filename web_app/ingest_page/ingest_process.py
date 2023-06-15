@@ -22,6 +22,9 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         df_reference_table = self.classifier.un_labeled.copy()
         df_reference_table['Date'] = df_reference_table['Date'].apply(
             lambda x: ordinal(x.day) + x.strftime(' %b %Y'))
+        # TODO: Add checks for columns like account name drop them only if there is only one value present
+        df_reference_table = df_reference_table[['ref', 'Date', 'Type', 'Description_x', 'Value', 'Balance']]
+        df_reference_table = df_reference_table.rename({'Description_x': 'Description'})
         self.reference_table = DataFrameWidget(self, df_reference_table, self.interest_row, 2)
         self.reference_table.pack(fill='both', expand=True)
 

@@ -86,6 +86,5 @@ class DBManagerPage(customtkinter.CTkFrame):
         shutil.copy2(join('database', 'protected', 'merged.csv'), join('database', 'merged.csv'))
 
     def copy_main_both(self):
-        print('copy_main_both')
         self.copy_main_ingested()
         self.copy_main_merged()

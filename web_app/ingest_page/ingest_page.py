@@ -58,7 +58,6 @@ class IngestPage(customtkinter.CTkFrame):
             self.lb_classifier_result.configure(
                 text=f'{len(self.classifier.automatically_labeled)} automatic entries saved and {len(self.classifier.labeled_data)} manual entries saved')
 
-            print(self.classifier.labeled_data)
             self.db.add_to_merged(self.classifier.automatically_labeled)
             self.db.add_to_merged(self.classifier.labeled_data)
 

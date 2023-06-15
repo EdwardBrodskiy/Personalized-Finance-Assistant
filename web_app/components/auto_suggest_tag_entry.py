@@ -6,22 +6,34 @@ from web_app.ui.Button import Button
 
 
 class AutoSuggestTagEntry(ctk.CTkFrame):
-    def __init__(self, master, suggestions=None, selected=(), on_change=None, tag_selection_options=('',), **kwargs):
+    def __init__(self, master, suggestions=None, selected=(), on_change=None, tag_selection_options=('',),
+                 suggestions_only=False, banned_tags=None, **kwargs):
         super().__init__(master, **kwargs)
+        self._suggestions_only = suggestions_only
         self.suggestions = suggestions
         self._on_change = on_change
         self._tag_selection_options = tag_selection_options
+
+        # Tag string : Reason
+        self._banned_tags = {
+            '': 'Empty tag is not allowed'
+        }
+        if banned_tags is not None:
+            self._banned_tags = self._banned_tags | banned_tags
+
+        self.suggestions = [tag for tag in self.suggestions if tag not in self._banned_tags]
 
         self.grid_columnconfigure(2, weight=1)
         self.tags = {tag: None for tag in self.suggestions}
 
         self.entry = AutoSuggestEntry(self, suggestions=self._get_unselected_suggestions())
-        self.entry.grid(column=0, row=0, sticky='news')
+        self.entry.grid(column=0, row=0, sticky='news', padx=6, pady=12)
 
         self.enter = Button(self, text='+', width=30, command=self._add_tag)
-        self.enter.grid(column=1, row=0, sticky='news', padx=2, pady=2)
+        self.enter.grid(column=1, row=0, sticky='news', padx=6, pady=12)
 
-        self.tag_frame = ctk.CTkFrame(self, height=self.entry.winfo_reqheight() - 4)
+        self.tag_frame = ctk.CTkScrollableFrame(self, height=self.entry.winfo_reqheight() - 14, width=1000,
+                                                orientation='horizontal')
         self.tag_frame.grid(column=2, row=0, sticky='news', padx=5, pady=2)
 
         self.entry.bind("<Shift-Return>", self._add_tag)
@@ -45,13 +57,18 @@ class AutoSuggestTagEntry(ctk.CTkFrame):
     def _add_tag(self, *args, tag=None):
         tag_was_none = tag is None
         state = 0
-        print(tag)
         if tag_was_none:
             tag = self.entry.get()
         elif type(tag) is list:
-            tag, state= tag
+            tag, state = tag
         if tag in self._get_selected_suggestions():
-            Notification(self, f'Tag {tag} is already added')
+            Notification(self, f'Tag "{tag}" is already added')
+            return
+        if tag in self._banned_tags:
+            Notification(self, self._banned_tags[tag])
+            return
+        if self._suggestions_only and tag not in self.suggestions:
+            Notification(self, f'Tag "{tag}" does not exist')
             return
 
         self.tags[tag] = TagButton(
@@ -61,14 +78,14 @@ class AutoSuggestTagEntry(ctk.CTkFrame):
             width=0,
             selection_options=self._tag_selection_options,
             on_state_change=self._on_change,
-            initial_selection=state
+            initial_selection=state,
         )
         self.tags[tag].pack(side='left', padx=(0, 2))
 
         self.entry.suggestions = self._get_unselected_suggestions()
 
         self.entry.set('')
-        if tag_was_none:
+        if tag_was_none and self._on_change is not None:
             self._on_change()
 
     def _remove_tag(self, tag):

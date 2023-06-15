@@ -27,7 +27,8 @@ class RowEntry(customtkinter.CTkFrame):
                 ('Description', customtkinter.CTkEntry(self, width=300)),
                 ('Amount', customtkinter.CTkEntry(self)),
                 ('Tags',
-                 AutoSuggestTagEntry(self, suggestions=suggestions['Tags'], selection_optoins=('', ' - 1', ' - 2')))
+                 AutoSuggestTagEntry(self, suggestions=suggestions['Tags'], tag_selection_options=('', ' - 1', ' - 2'),
+                                     banned_tags={'Automatic': 'Tag reserved for classifier'}))
             )
         )
 
