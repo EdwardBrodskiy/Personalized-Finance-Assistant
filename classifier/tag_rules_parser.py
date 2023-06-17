@@ -9,10 +9,12 @@ Special ops:
 List Selectors (Mostly for selecting based on tags):
     Any : takes a list returns True if any are found
     All : takes a list returns True if all are found
-    Has : takes an integer returns equivalent of (x >= len(row_value)
 
 String Selectors (for columns like Description):
     Includes : takes a list returns True if any of the strings are contained within
+    
+Length selectors:
+    Has : takes an integer returns equivalent of (x >= len(row_value)
 '''
 
 

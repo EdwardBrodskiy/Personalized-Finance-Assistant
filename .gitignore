@@ -3,5 +3,6 @@
 *.log
 /display_files
 __pycache__/
-
+/user_data/
 /app_storage/
+/config/

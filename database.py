@@ -6,10 +6,12 @@ import pandas as pd
 
 from structures import database_types, merged_types
 
+from configuration import get_filepaths
+
 
 class DataBase:
     def __init__(self):
-        self.__path = 'database'
+        self.__path = get_filepaths()['database']
 
     def run_on_main(self, gui=False):
         confirmation = True
@@ -17,12 +19,12 @@ class DataBase:
             confirmation = input('I know what I am doing! I want to run on main database: ') == 'yes'
 
         if confirmation:
-            self.__path = os.path.join('database', 'protected')
+            self.__path = os.path.join(self.__path, 'protected')
         else:
             raise FileNotFoundError('Remove run on main!')
 
     def run_not_on_main(self):
-        self.__path = 'database'
+        self.__path = get_filepaths()['database']
 
     def get_database(self):
         database = pd.read_csv(os.path.join(self.__path, 'all.csv'), index_col='key')

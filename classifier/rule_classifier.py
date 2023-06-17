@@ -1,4 +1,3 @@
-import json
 import math
 import os
 from itertools import zip_longest
@@ -6,6 +5,7 @@ from itertools import zip_longest
 import pandas as pd
 
 from classifier.tag_rules_parser import rule_to_selector
+from configuration import get_tag_rules
 from structures import merged_types
 from web_app.helper_functions import extract_tags
 
@@ -41,8 +41,7 @@ class Classifier:
         un_labeled['Tags'] = un_labeled['Tags'].apply(lambda x: x if isinstance(x, list) else [])
         un_labeled['Description_y'] = un_labeled['Description_y'].fillna('')
 
-        with open(os.path.join('classification_data', 'tag_rules.json')) as file:
-            tag_rules = json.load(file)
+        tag_rules = get_tag_rules()
 
         tagged_data = self._tag_data_based_on_rules(tag_rules, un_labeled)
 
@@ -58,41 +57,6 @@ class Classifier:
         self.un_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' not in x)]
 
         self.part_labeled = self.un_labeled[list(merged_types.keys())]
-
-    @staticmethod
-    def classify_existence_certain(data: pd.DataFrame):
-        with open('./classification_data/certain_existence.json') as file:
-            existence_keys = json.load(file)
-
-        labeled_data = pd.DataFrame(merged_types, index=[])
-        labeled_data = labeled_data.astype(merged_types)
-
-        for who, keys in existence_keys.items():
-            print(data.columns)
-            identified = data[data['Description'].str.contains('|'.join(keys))]
-            if len(identified):
-                labeled = pd.DataFrame({
-                    'ref': identified['ref'].reset_index(drop=True),
-                    'Who': pd.Series(who, index=range(len(identified))),
-                    'What': pd.Series('', index=range(len(identified))),
-                    'Description': pd.Series('', index=range(len(identified))),
-                    'Amount': identified['Value'].reset_index(drop=True),
-                    'Sub Account': pd.Series('existence', index=range(len(identified))),
-
-                })
-                labeled = labeled.astype(merged_types)
-                labeled_data = pd.concat([labeled_data, labeled], ignore_index=True)
-
-        # remove double classified data
-        # TODO: work out if this is important
-        dups = labeled_data.duplicated(subset=['ref'])
-        duplicated_rows = labeled_data[labeled_data['ref'].isin(labeled_data[dups]['ref'])]
-        labeled_data = labeled_data.drop(index=duplicated_rows.index)
-
-        # remove labeled rows from un labeled data
-        data = data.drop(index=data[data['ref'].isin(labeled_data['ref'])].index)
-
-        return labeled_data, data
 
     @staticmethod
     def _tag_data_based_on_rules(tag_rules, data: pd.DataFrame):
@@ -181,6 +145,3 @@ class Classifier:
         new_data.astype(merged_types)
         self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
         self.labeled_data.to_csv(os.path.join('display_files', 'user_labeled_backup.csv'))
-
-    def classify_off_record(self):
-        pass

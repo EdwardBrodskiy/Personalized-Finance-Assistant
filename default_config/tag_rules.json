@@ -1,0 +1,101 @@
+[
+  {
+    "Travel": {
+      "Description": {
+        "Includes": [
+          "TRAVEL",
+          "UBER",
+          "NATIONAL EXPRESS"
+        ]
+      }
+    },
+    "VPN": {
+      "Description": {
+        "Includes": [
+          "VPN"
+        ]
+      }
+    },
+    "Food Shop": {
+      "Description": {
+        "Includes": [
+          "SAINSBURY",
+          "CO-OP",
+          "TESCO",
+          "M AND S",
+          "MARKS AND SPENCER",
+          "MARKS&SPENCER",
+          "WILKO RETAIL",
+          "M&S",
+          "WAITROSE"
+        ]
+      }
+    },
+    "Food Venue": {
+      "Description": {
+        "Includes": [
+          "COSTA",
+          "PRET A MANGER",
+          "GAILS"
+        ]
+      }
+    },"Food Delivery": {
+      "Description": {
+        "Includes": [
+          "DELIVEROO"
+        ]
+      }
+    },
+    "ISP": {
+      "Description": {
+        "Includes": [
+          "O2",
+          "VIRGIN MEDIA"
+        ]
+      }
+    },
+    "AliExpress": {
+      "Description": {
+        "Includes": [
+          "ALIEXPRESS"
+        ]
+      }
+    },
+    "Ebay": {
+      "Description": {
+        "Includes": [
+          "EBAY"
+        ]
+      }
+    },
+    "Amazon": {
+      "Description": {
+        "Includes": [
+          "AUDIBLE",
+          "AMZN MKTP",
+          "AMZNMKTPLACE",
+          "AMAZON"
+        ]
+      }
+    }
+  },
+  {
+    "Automatic": {
+      "Tags": {
+        "Any": [
+          "TV Licensing",
+          "British Gas",
+          "Council Tax",
+          "Thames Water",
+          "Travel",
+          "VPN",
+          "Food Shop",
+          "Food Venue",
+          "ISP",
+          "Fencing",
+          "Other Service"
+        ]
+      }
+    }
+  }
+]
