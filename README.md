@@ -1,4 +1,4 @@
-# Accounts Manager
+# Personalized Finance Assistant
 
 This is an accounting program made to track you day to day transactions. It is able to automatically classify many of
 your transactions while part labeling others and letting you fill in the details. On top of this it provides 
@@ -19,9 +19,9 @@ Activate it:
 source venv/bin/activate
 ```
 
-Simply install the required packages
+Install the required packages using the following command:
 ```shell
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Add your transactions
@@ -43,7 +43,7 @@ a single csv just label it a single year such as 2020.csv.
 
 ## Run the program 
 
-Simply run the app
+Run the app using the command below in your terminal:
 
 ```bash
 python app.py
@@ -107,7 +107,7 @@ description.
 }
 ```
 
-## Super Tags
+## Higher Tags
 
 In some cases you may want to continue the evaluation of a row by considering the tags that have already been 
 assigned to it. To ensure the order of these operations and for general organisation the tag rules are placed in a list.
@@ -115,7 +115,8 @@ assigned to it. To ensure the order of these operations and for general organisa
 So most of your low level rules such as the one shown in the prior section can exist in the first group. A higher 
 level tags is best described by looking at the most critical high level tag which is already implemented for you. 
 The "Automated" tag tells the classifier that this row does not need further clarification from the user meaning it 
-will not be shown in the manual classification stage. Here is a reduced version of how it is implemented:
+will not be shown in the manual classification stage. Here is a reduced version of how this higher level tag is 
+implemented:
 ```json
 {
   "Automatic": {
