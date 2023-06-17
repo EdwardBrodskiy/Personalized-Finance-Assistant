@@ -27,18 +27,33 @@ class DataBase:
         self.__path = get_filepaths()['database']
 
     def get_database(self):
-        database = pd.read_csv(os.path.join(self.__path, 'all.csv'), index_col='key')
+        database = self._read_csv('all.csv')
+        if database is None:
+            return None
         database['ref'] = database.index
         return database.astype(database_types)
 
     def get_merged(self):
-        merged = pd.read_csv(os.path.join(self.__path, 'merged.csv'), index_col='key')
+        merged = self._read_csv('merged.csv')
+        if merged is None:
+            return None
         merged['Tags'] = merged['Tags'].apply(lambda x: ast.literal_eval(x))
         return merged.astype(merged_types)
 
     def get_off_record(self):
-        cash = pd.read_csv(os.path.join(self.__path, 'cash.csv'), index_col='key')
+        cash = self._read_csv('cash.csv')
+        if cash is None:
+            return None
         return cash.astype(merged_types)
+
+    def _read_csv(self, filename):
+        try:
+            return pd.read_csv(os.path.join(self.__path, filename), index_col='key')
+        except FileNotFoundError:
+            logging.error(f'Attempt to read file "{filename}", which does not exist.')
+            # Create an empty DataFrame
+            df = pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
+            return df
 
     def add_to_database(self, new_items: pd.DataFrame):
         old_items = self.get_database()
