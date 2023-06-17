@@ -4,9 +4,8 @@ import os
 
 import pandas as pd
 
-from structures import database_types, merged_types
-
 from configuration import get_filepaths
+from structures import database_types, merged_types, off_record_types
 
 
 class DataBase:
@@ -29,21 +28,21 @@ class DataBase:
     def get_database(self):
         database = self._read_csv('all.csv')
         if database is None:
-            return pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
+            return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in database_types.items()})
         database['ref'] = database.index
         return database.astype(database_types)
 
     def get_merged(self):
         merged = self._read_csv('merged.csv')
         if merged is None:
-            return pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
+            return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in merged_types.items()})
         merged['Tags'] = merged['Tags'].apply(lambda x: ast.literal_eval(x))
         return merged.astype(merged_types)
 
     def get_off_record(self):
         cash = self._read_csv('cash.csv')
         if cash is None:
-            return pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
+            return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in off_record_types.items()})
         return cash.astype(merged_types)
 
     def _read_csv(self, filename):
