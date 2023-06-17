@@ -21,7 +21,7 @@ source venv/bin/activate
 
 Simply install the required packages
 ```shell
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Add your transactions
