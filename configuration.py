@@ -4,7 +4,6 @@ import os
 
 def get_filepaths():
     filepaths = try_get_config('filepaths.json')
-    print(filepaths)
     joined_filepaths = {key: os.path.join(*path) for key, path in filepaths.items()}
     return joined_filepaths
 

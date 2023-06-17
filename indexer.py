@@ -1,18 +1,15 @@
 import csv
-import pandas as pd
-import numpy as np
-from old_structures import mp, database_types
 import logging
-from database import DataBase
 
+import numpy as np
+import pandas as pd
 
-def main():
-    index()
+from structures import mp, database_types
 
 
 def get_items_from_input():
     all_items = []
-    for year in range(2019, 2200):
+    for year in range(1800, 2200):
         try:
             with open(f'input/{year}.csv') as file:
 
@@ -52,12 +49,3 @@ def index(db):
     db.add_to_database(new)
 
     return new  # return intended for info based output only
-
-
-if __name__ == '__main__':
-    pd.set_option('display.max_columns', 500)
-    pd.set_option('display.width', 300)
-    logging.basicConfig(filename='logs/indexer.log', filemode='a',
-                        format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-    logging.info('\n\n### RUNNING indexer.py ###\n')
-    main()

@@ -18,7 +18,7 @@ class App(ctk.CTk):
 
         # configure window
         self.title("Accounts Manager")
-        self.iconphoto(False, tk.PhotoImage(file=os.path.join('web_app', 'icon3.png')) )
+        self.iconphoto(False, tk.PhotoImage(file=os.path.join('web_app', 'icon.png')))
         self.geometry(f"{1600}x{1000}")
         ctk.set_widget_scaling(1.2)
 

@@ -191,5 +191,5 @@ class Search(ctk.CTkFrame):
         try:
             return [f[:-5] for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f[-5:] == '.json']
         except FileNotFoundError:
-            os.mkdir(path)
+            os.makedirs(path)
             return []

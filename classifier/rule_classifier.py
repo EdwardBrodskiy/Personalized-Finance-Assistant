@@ -7,7 +7,7 @@ import pandas as pd
 from classifier.tag_rules_parser import rule_to_selector
 from configuration import get_tag_rules
 from structures import merged_types
-from web_app.helper_functions import extract_tags
+from helper_functions import extract_tags
 
 
 class Classifier:

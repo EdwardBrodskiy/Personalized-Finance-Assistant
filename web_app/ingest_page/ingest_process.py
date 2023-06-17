@@ -1,7 +1,7 @@
 import customtkinter
 
 from web_app.components.dataframe_widget import DataFrameWidget
-from web_app.helper_functions import ordinal
+from helper_functions import ordinal
 from web_app.ingest_page.row_entry import RowEntry
 
 

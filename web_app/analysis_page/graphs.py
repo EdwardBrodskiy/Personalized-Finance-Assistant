@@ -7,7 +7,7 @@ from matplotlib.figure import Figure
 
 from web_app.components.menu import Menu
 from web_app.components.notification import Notification
-from web_app.helper_functions import get_hex, extract_tags
+from helper_functions import get_hex, extract_tags
 from web_app.theme_colors import colors
 
 

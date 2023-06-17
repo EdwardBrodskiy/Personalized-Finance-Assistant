@@ -3,7 +3,7 @@ import pandas as pd
 
 from classifier.tag_rules_parser import rule_to_selector
 from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
-from web_app.helper_functions import extract_tags
+from helper_functions import extract_tags
 from web_app.theme_colors import colors
 
 
