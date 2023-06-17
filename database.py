@@ -29,21 +29,21 @@ class DataBase:
     def get_database(self):
         database = self._read_csv('all.csv')
         if database is None:
-            return None
+            return pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
         database['ref'] = database.index
         return database.astype(database_types)
 
     def get_merged(self):
         merged = self._read_csv('merged.csv')
         if merged is None:
-            return None
+            return pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
         merged['Tags'] = merged['Tags'].apply(lambda x: ast.literal_eval(x))
         return merged.astype(merged_types)
 
     def get_off_record(self):
         cash = self._read_csv('cash.csv')
         if cash is None:
-            return None
+            return pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
         return cash.astype(merged_types)
 
     def _read_csv(self, filename):
@@ -51,9 +51,7 @@ class DataBase:
             return pd.read_csv(os.path.join(self.__path, filename), index_col='key')
         except FileNotFoundError:
             logging.error(f'Attempt to read file "{filename}", which does not exist.')
-            # Create an empty DataFrame
-            df = pd.DataFrame({name: pd.Series(dtype=type) for name, type in database_types.items()})
-            return df
+            return None
 
     def add_to_database(self, new_items: pd.DataFrame):
         old_items = self.get_database()
