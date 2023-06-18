@@ -2,6 +2,7 @@ import customtkinter
 
 from classifier.rule_classifier import Classifier
 from indexer import index as index_input_data
+from web_app.components.notification import Notification
 from web_app.ingest_page.ingest_process import IngestProcess
 
 
@@ -27,7 +28,7 @@ class IngestPage(customtkinter.CTkFrame):
         self.lb_indexer_result.grid(row=0, column=0, sticky='e')
 
         self.bt_run_classifier = customtkinter.CTkButton(self.lower_controls, text='Run classifier',
-                                                         command=self.start_ingest_process)
+                                                         command=self.toggle_ingest_process)
         self.bt_run_classifier.grid(row=1, column=1, sticky='e')
 
         self.lb_classifier_result = customtkinter.CTkLabel(self.lower_controls, text='Classifier has not been run yet',
@@ -38,30 +39,32 @@ class IngestPage(customtkinter.CTkFrame):
         self.ingest_label.pack(side='top')
         self.ingest_process = None
 
-    def start_ingest_process(self):
+    def toggle_ingest_process(self):
         if not self.ingest_process_active:
-            self.classifier.begin_classification()
-
-            self.lb_classifier_result.configure(
-                text=f'Classification in progress please enter the required manual information. '
-                     f'{len(self.classifier.automatically_labeled)} classified automatically')
-            self.bt_run_classifier.configure(text='Finish and save')
-
-            self.ingest_label.pack_forget()
-            self.ingest_process = IngestProcess(self, self.classifier, height=2000)
-            self.ingest_process.pack(side='top', fill='both')
-
             self.ingest_process_active = True
+            self.classifier.begin_classification()
+            self.ingest_label.pack_forget()
+            if len(self.classifier.un_labeled): # if there is something to manually label
+                self.lb_classifier_result.configure(
+                    text=f'Classification in progress please enter the required manual information. '
+                         f'{len(self.classifier.automatically_labeled)} classified automatically')
+                self.bt_run_classifier.configure(text='Finish and save')
+
+                self.ingest_process = IngestProcess(self, self.classifier, height=2000)
+                self.ingest_process.pack(side='top', fill='both')
+            else:
+                Notification(self, f'No rows in need of manual labeling and '
+                                   f'{len(self.classifier.automatically_labeled)} were labeled automatically')
         else:
-            self.ingest_process.pack_forget()
+            self.ingest_process_active = False
+            if self.ingest_process is not None:
+                self.ingest_process.pack_forget()
             self.ingest_label.pack(side='top')
             self.lb_classifier_result.configure(
                 text=f'{len(self.classifier.automatically_labeled)} automatic entries saved and {len(self.classifier.labeled_data)} manual entries saved')
 
             self.db.add_to_merged(self.classifier.automatically_labeled)
             self.db.add_to_merged(self.classifier.labeled_data)
-
-            self.ingest_process_active = False
 
     def run_indexer(self):
         new = index_input_data(self.db)

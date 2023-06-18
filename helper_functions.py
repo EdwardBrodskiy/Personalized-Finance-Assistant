@@ -1,3 +1,5 @@
+import errno
+import os
 from collections import Counter
 from itertools import chain
 
@@ -22,3 +24,13 @@ def extract_tags(series):
     tag_counts_ordered = tag_counts.most_common()  # Order by popularity (most common first)
     only_tags = [tag for tag, _ in tag_counts_ordered]
     return only_tags
+
+
+def ensure_dir_exists(filepath):
+    directory = os.path.dirname(filepath)
+    if not os.path.exists(directory):
+        try:
+            os.makedirs(directory)
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise

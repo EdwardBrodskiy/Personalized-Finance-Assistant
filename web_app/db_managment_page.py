@@ -1,5 +1,8 @@
 import customtkinter
+
+from configuration import get_filepaths
 from database import DataBase
+from helper_functions import ensure_dir_exists
 from web_app.components.menu import Menu
 import shutil
 from os.path import join
@@ -78,12 +81,19 @@ class DBManagerPage(customtkinter.CTkFrame):
 
     # Database Ops actions
     def copy_main_ingested(self):
-        Notification(self, 'Ingested copied from main')
-        shutil.copy2(join('database', 'protected', 'all.csv'), join('database', 'all.csv'))
+        self.copy_protected('all', 'Ingested')
 
     def copy_main_merged(self):
-        Notification(self, 'Merged copied from main')
-        shutil.copy2(join('database', 'protected', 'merged.csv'), join('database', 'merged.csv'))
+        self.copy_protected('merged', 'Merged')
+
+    def copy_protected(self, what, ui_name):
+        directory = get_filepaths()['database']
+        ensure_dir_exists(join(directory, 'protected'))
+        try:
+            shutil.copy2(join(directory, 'protected', f'{what}.csv'), join(directory, f'{what}.csv'))
+            Notification(self, f'{ui_name} copied from main')
+        except FileNotFoundError:
+            Notification(self, f'{ui_name} does not exist in main database')
 
     def copy_main_both(self):
         self.copy_main_ingested()

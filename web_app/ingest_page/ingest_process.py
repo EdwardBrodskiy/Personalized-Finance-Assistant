@@ -2,11 +2,12 @@ import customtkinter
 
 from web_app.components.dataframe_widget import DataFrameWidget
 from helper_functions import ordinal
+from web_app.components.notification import Notification
 from web_app.ingest_page.row_entry import RowEntry
 
 
 class IngestProcess(customtkinter.CTkScrollableFrame):
-    def __init__(self, master, classifier, **kwargs):
+    def __init__(self, master, classifier, end_process=None, **kwargs):
         super().__init__(master, **kwargs)
         self.classifier = classifier
 
@@ -22,7 +23,7 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         df_reference_table = self.classifier.un_labeled.copy()
         df_reference_table['Date'] = df_reference_table['Date'].apply(
             lambda x: ordinal(x.day) + x.strftime(' %b %Y'))
-        # TODO: Add checks for columns like account name drop them only if there is only one value present
+        # TODO: add this to config selection
         df_reference_table = df_reference_table[['ref', 'Date', 'Type', 'Description_x', 'Value', 'Balance']]
         df_reference_table = df_reference_table.rename({'Description_x': 'Description'})
         self.reference_table = DataFrameWidget(self, df_reference_table, self.interest_row, 2)

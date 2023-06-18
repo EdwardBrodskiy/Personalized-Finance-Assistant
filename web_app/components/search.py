@@ -5,6 +5,7 @@ import customtkinter as ctk
 import pandas as pd
 
 import web_app.components.filters as filters
+from helper_functions import ensure_dir_exists
 from web_app.components.notification import Notification
 from web_app.popups.warninig_popup import WarningPopup
 
@@ -17,6 +18,7 @@ class Search(ctk.CTkFrame):
         self.on_search = on_search
         self.dataframe = dataframe
         self.search_id = search_id
+        ensure_dir_exists(os.path.join(self.saves_path, self.search_id))
 
         self.columns = {column: None for column in self.dataframe.columns}
 

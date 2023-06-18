@@ -65,6 +65,7 @@ class DataFrameViewer(ctk.CTkFrame):
         self.set_button_states()
 
     def _save_to_csv(self):
+        # TODO: Does not update file name without a search change
         path = ctk.filedialog.asksaveasfilename(defaultextension=".csv", initialfile=f'{self.current_name}.csv',
                                                 filetypes=[("CSV Files", "*.csv")], initialdir='display_files')
 

@@ -5,6 +5,7 @@ import os
 import pandas as pd
 
 from configuration import get_filepaths
+from helper_functions import ensure_dir_exists
 from structures import database_types, merged_types, off_record_types
 
 
@@ -71,14 +72,17 @@ class DataBase:
     def _add_new_items(self, old_items, new_items: pd.DataFrame, where):
         if len(new_items):
             # Load and back-up
-
-            old_items.to_csv(os.path.join(self.__path, f'previous_{where}.csv'))
+            previous_path = os.path.join(self.__path, f'previous_{where}.csv')
+            ensure_dir_exists(previous_path)
+            old_items.to_csv(previous_path)
 
             # Merge and Save
             new_database = pd.concat([old_items, new_items], ignore_index=True)
 
             new_database.index.name = 'key'
-            new_database.to_csv(os.path.join(self.__path, f'{where}.csv'))
+            path = os.path.join(self.__path, f'{where}.csv')
+            ensure_dir_exists(path)
+            new_database.to_csv(path)
 
             logging.info(f'Saved {where} with {len(new_items)} new rows')
         else:
