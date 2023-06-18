@@ -5,7 +5,7 @@ from itertools import zip_longest
 import pandas as pd
 
 from classifier.tag_rules_parser import rule_to_selector
-from configuration import get_tag_rules
+from configuration import get_tag_rules, get_filepaths
 from structures import merged_types
 from helper_functions import extract_tags
 
@@ -78,8 +78,8 @@ class Classifier:
         row = self.un_labeled.iloc[index]
         row = pd.DataFrame(row).T.reset_index()
         # extract tags in common order in the relative scope of manual labeling
-        non_automatically_labeled_rows = self.merged[self.merged['Tags'].apply(lambda x: 'Automatic' not in x)]
-        tags = extract_tags(non_automatically_labeled_rows['Tags'])
+        non_automatically_labeled_tags = self.merged['Tags'][self.merged['Tags'].apply(lambda x: 'Automatic' not in x)]
+        tags = extract_tags(non_automatically_labeled_tags)
         return row, {'Tags': tags}
 
     @staticmethod
@@ -144,4 +144,7 @@ class Classifier:
         new_data = pd.DataFrame(data)
         new_data.astype(merged_types)
         self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
-        self.labeled_data.to_csv(os.path.join('display_files', 'user_labeled_backup.csv'))
+        display_files_path = get_filepaths()['display_files']
+        if not os.path.exists(display_files_path):
+            os.makedirs(display_files_path)
+        self.labeled_data.to_csv(os.path.join(display_files_path, 'user_labeled_backup.csv'))

@@ -45,7 +45,7 @@ class RowEntry(customtkinter.CTkFrame):
         if self.first_table_draw:
             self.grid_columnconfigure(list(range(len(self.fields))), weight=1)
             self.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
-            self.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=10)
+            self.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=5)
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
 

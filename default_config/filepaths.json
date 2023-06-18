@@ -1,6 +1,13 @@
 {
-  "database" : [
-    "user_data", "database"
+  "database": [
+    "user_data",
+    "database"
   ],
-  "inputs" : ["user_data", "input"]
+  "inputs": [
+    "user_data",
+    "input"
+  ],
+  "display_files": [
+    "display_files"
+  ]
 }

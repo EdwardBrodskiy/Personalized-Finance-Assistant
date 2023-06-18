@@ -32,7 +32,7 @@ class AutoSuggestTagEntry(ctk.CTkFrame):
         self.enter = Button(self, text='+', width=30, command=self._add_tag)
         self.enter.grid(column=1, row=0, sticky='news', padx=6, pady=12)
 
-        self.tag_frame = ctk.CTkScrollableFrame(self, height=self.entry.winfo_reqheight() - 14, width=1000,
+        self.tag_frame = ctk.CTkScrollableFrame(self, height=self.entry.winfo_reqheight() - 14, width=500,
                                                 orientation='horizontal')
         self.tag_frame.grid(column=2, row=0, sticky='news', padx=5, pady=2)
 
