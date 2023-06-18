@@ -1,0 +1,27 @@
+{
+  "DataBaseTypes": {
+    "Date": "datetime64[ns]",
+    "Type": "category",
+    "Description": "string",
+    "Value": "float64",
+    "Balance": "float64",
+    "Account Name": "string",
+    "Account Number": "string"
+  },
+  "input data column format": {
+    "NatWest": [
+      "Date",
+      "Type",
+      "Description",
+      "Value",
+      "Balance",
+      "Account Name",
+      "Account Number"
+    ],
+    "HSBC": [
+      "Date",
+      "Description",
+      "Value"
+    ]
+  }
+}

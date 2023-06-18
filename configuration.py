@@ -12,6 +12,10 @@ def get_tag_rules():
     return try_get_config('tag_rules.json')
 
 
+def get_transaction_formats():
+    return try_get_config('transaction_formats.json')
+
+
 def try_get_config(filename):
     try:
         with open(os.path.join('config', filename)) as file:

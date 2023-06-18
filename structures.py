@@ -1,17 +1,18 @@
+import logging
+
 import numpy as np
 
-mp = {'Date': 0, 'Type': 1, 'Description': 2, 'Value': 3, 'Balance': 4, 'Account Name': 5, 'Account Number': 6}
+from configuration import get_transaction_formats
 
-database_types = {
-    'Date': 'datetime64[ns]',
-    'Type': 'category',
-    'Description': 'string',
-    'Value': np.float64,
-    'Balance': np.float64,
-    'Account Name': 'string',
-    'Account Number': 'string',
-    'ref': np.int64
-}
+
+additional_database_types = {'Source': 'category', "ref": "int64"}
+user_database_definition = get_transaction_formats()['DataBaseTypes']
+for column in user_database_definition:
+    if column in additional_database_types:
+        logging.warning(f'User defined type "{column}" collides with internal database types. '
+                        f'Please change the column name')
+
+database_types = user_database_definition | additional_database_types
 
 merged_types = {
     'ref': np.int64,
