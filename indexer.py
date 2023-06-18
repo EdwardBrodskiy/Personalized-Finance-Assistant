@@ -40,8 +40,6 @@ def get_items_from_input():
 def find_new(possibly_new, existing):
     df1 = possibly_new[['Date', 'Value', 'Balance']]
     df2 = existing[['Date', 'Value', 'Balance']]
-    temp1 = df1.apply(tuple, 1)
-    temp2 = df2.apply(tuple, 1)
     return possibly_new[~df1.apply(tuple, 1).isin(df2.apply(tuple, 1))]
 
 
