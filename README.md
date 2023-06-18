@@ -22,6 +22,9 @@ Activate it:
 source venv/bin/activate
 ```
 
+A helper script is also provided to setup and run the program in a virtual environment in the project root
+(see [Run the program](#run-the-program)). 
+
 Install the required packages using the following command:
 
 ```shell
@@ -53,6 +56,15 @@ Run the app using the command below in your terminal:
 ```bash
 python app.py
 ```
+
+If using a virtual environment in the project root, a helper script is provided:
+
+```bash
+./app.sh
+```
+
+If not set up, this script will set up a virtual environment, and install all needed dependencies with pip. Otherwise, 
+it will run the program in an existing venv. Both cases will end up running the program in the venv automatically. 
 
 ## Configuration
 
