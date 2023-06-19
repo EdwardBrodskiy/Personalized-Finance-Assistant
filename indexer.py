@@ -60,6 +60,14 @@ def get_items_from_input():
                             continue
                         first_data_row_found = True  # passed all the checks so is likely to be a data row
 
+                    # match and strip commas in numerical columns
+                    for column in [c for c in csv_formats[directory_format]]:
+                        expected_type = database_types[column]
+                        if expected_type in ('float64', 'int64'):
+                            value_index = csv_formats[directory_format].index("Value")
+                            regex = re.compile(',')  # matches a comma
+                            row[value_index] = regex.sub('', row[value_index])
+
                     # add row
 
                     # pYtHoNiC
