@@ -71,7 +71,11 @@ class Menu(customtkinter.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
         for index, (key, settings) in enumerate(self.sheet.items()):
             element_type, text, kwargs = settings
-            full_kwargs = kwargs | {'command': lambda *_: self.on_change(key)}
+            # k=key fixes key only being from last item in self.sheet
+            # This default definition ensures that k is in the lambda's scope, rather than in the parent scope
+            # (the for loop).
+            # see: https://stackoverflow.com/questions/7546285/creating-lambda-inside-a-loop
+            full_kwargs = kwargs | {'command': lambda *_, k=key: self.on_change(k)}
             if key in load_data:
                 full_kwargs = full_kwargs | load_data[key]
             self.elements[key] = (
@@ -87,7 +91,6 @@ class Menu(customtkinter.CTkFrame):
         with open(path, 'w+') as file:
             json.dump(self.serialize(), file, indent=2)
 
-        # TODO: strange bug most obvious in copy from protected section of db manager where not the correct command runs
         if 'command' in self.sheet[key][2]:
             self.sheet[key][2]['command']()
 
