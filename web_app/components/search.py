@@ -148,6 +148,8 @@ class Search(ctk.CTkFrame):
         Notification(self, f'Search saved to {file_name}')
 
         self._update_file_options()
+        if self.on_search is not None:
+            self.on_search()
 
     def _load(self):
         file_name = self.file_name.get()

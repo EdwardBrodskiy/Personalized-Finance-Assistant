@@ -30,7 +30,7 @@ class AnalysisPage(ctk.CTkScrollableFrame):
         self.insights.pack(fill='x')
 
         # Table preview
-        self.table = DataFrameViewer(self, self.searched_dataframe)
+        self.table = DataFrameViewer(self, self.searched_dataframe, current_name=self.search.file_name)
         self.table.pack(fill='x')
 
         # white space footer
@@ -48,7 +48,6 @@ class AnalysisPage(ctk.CTkScrollableFrame):
         self.graphics.dataframe = self.searched_dataframe
 
         self.table.dataframe = self.searched_dataframe
-        self.table.current_name = self.search.file_name.get()
 
         self.insights.dataframe = self.searched_dataframe
 

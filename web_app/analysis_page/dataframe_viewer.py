@@ -5,11 +5,11 @@ from web_app.components.notification import Notification
 
 
 class DataFrameViewer(ctk.CTkFrame):
-    def __init__(self, master, dataframe, **kwargs):
+    def __init__(self, master, dataframe, current_name=None, **kwargs):
         super().__init__(master, **kwargs)
 
         self._dataframe = dataframe
-        self.current_name = ''
+        self.current_name = current_name
         self.grid_columnconfigure(2, weight=1)
 
         self.show_table_button = ctk.CTkButton(self, text='Show Table', command=self._show_table)
@@ -65,8 +65,14 @@ class DataFrameViewer(ctk.CTkFrame):
         self.set_button_states()
 
     def _save_to_csv(self):
-        # TODO: Does not update file name without a search change
-        path = ctk.filedialog.asksaveasfilename(defaultextension=".csv", initialfile=f'{self.current_name}.csv',
+        if type(self.current_name) is ctk.StringVar:
+            default_name = self.current_name.get()
+        elif type(self.current_name) is str:
+            default_name = self.current_name
+        else:
+            default_name = 'unnamed'
+        path = ctk.filedialog.asksaveasfilename(defaultextension=".csv",
+                                                initialfile=f'{default_name}.csv',
                                                 filetypes=[("CSV Files", "*.csv")], initialdir='display_files')
 
         self._dataframe.to_csv(path)

@@ -54,7 +54,7 @@ class Filter(ctk.CTkFrame):
         return self.load_state[key] if self.load_state is not None else default
 
 
-class StringFilter(Filter):  # TODO: StringFilter does not seem to be working at the query stage
+class StringFilter(Filter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
