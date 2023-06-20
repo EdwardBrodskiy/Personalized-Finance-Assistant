@@ -71,6 +71,7 @@ def populate_rows_from_source(rows, source):
             # (this reduces the chance that invalid data rows are not reported)
             if not first_data_row_found:
                 first_data_row_found = is_data_row(row, directory_format)
+                continue
 
             clean_numerical_columns(row, directory_format)
 
