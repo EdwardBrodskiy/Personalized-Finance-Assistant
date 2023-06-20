@@ -29,7 +29,7 @@ class DBManagerPage(customtkinter.CTkFrame):
                 }
             ),
 
-        }, title='Main')
+        }, title='Main', load_from_save=False)
 
         self.main_menu.pack(fill='x', padx=5, pady=5)
 
@@ -59,13 +59,13 @@ class DBManagerPage(customtkinter.CTkFrame):
                 }
             ),
 
-        }, title='Database Operations')
+        }, title='Database Operations', load_from_save=False)
 
         self.database_ops_menu.pack(fill='x', padx=5, pady=5)
 
     # Main actions
     def run_on_main(self):
-        toggle_state = self.main_menu.elements['run_on_main'][1].state()
+        toggle_state = self.main_menu['run_on_main'].get()
         if toggle_state == 'on':
 
             check = WarningPopup(self, message='Are you sure you want to operate on main', opta='Yes',
@@ -74,7 +74,7 @@ class DBManagerPage(customtkinter.CTkFrame):
                 self.winfo_toplevel().title('Accounts Manager - RUNNING ON MAIN DATABASE')
                 self.db.run_on_main(gui=True)
             else:
-                self.main_menu.elements['run_on_main'][1].set_state('off')
+                self.main_menu['run_on_main'].set('off')
         else:
             self.winfo_toplevel().title('Accounts Manager')
             self.db.run_not_on_main()

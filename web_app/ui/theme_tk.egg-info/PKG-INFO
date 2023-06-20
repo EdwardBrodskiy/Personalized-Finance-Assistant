@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: theme-tk
+Version: 0.1
+Summary: A Tkinter library extension
+Author: Edward Brodski
+Author-email: brodskiedward@gmail.com
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+
+# ThemeTK
+
+This is an extension of Custom Tkinter which aims to produce a truly modern theming system.
+

@@ -2,16 +2,16 @@ import customtkinter as ctk
 
 from web_app.components.auto_suggest_entry import AutoSuggestEntry
 from web_app.components.notification import Notification
-from web_app.ui.Button import Button
+from theme_tk import Button
 
 
 class AutoSuggestTagEntry(ctk.CTkFrame):
-    def __init__(self, master, suggestions=None, selected=(), on_change=None, tag_selection_options=('',),
+    def __init__(self, master, suggestions=None, selected=(), command=None, tag_selection_options=('',),
                  suggestions_only=False, banned_tags=None, **kwargs):
         super().__init__(master, **kwargs)
         self._suggestions_only = suggestions_only
         self.suggestions = suggestions
-        self._on_change = on_change
+        self._on_change = command
         self._tag_selection_options = tag_selection_options
 
         # Tag string : Reason
@@ -102,6 +102,9 @@ class AutoSuggestTagEntry(ctk.CTkFrame):
 
     def hide_suggestions(self):
         self.entry.hide_suggestions()
+
+    def serialize(self):
+        return {'selected': self.get()}
 
 
 class TagButton(Button):

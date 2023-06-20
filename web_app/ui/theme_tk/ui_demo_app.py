@@ -1,10 +1,10 @@
 import os
 import customtkinter as ctk
 
-from web_app.ui.Button import DemoButtons
+from .Button import DemoButtons
 
 ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-ctk.set_default_color_theme(os.path.join('..', 'my_theme.json'))
+ctk.set_default_color_theme(os.path.join('../..', 'my_theme.json'))
 
 
 class UIDemoApp(ctk.CTk):

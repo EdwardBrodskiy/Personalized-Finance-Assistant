@@ -143,7 +143,7 @@ class Search(ctk.CTkFrame):
         path = os.path.join(self.saves_path, self.search_id, file_name + '.json')
 
         with open(path, 'w+') as file:
-            json.dump(filter_settings, file)
+            json.dump(filter_settings, file, indent=2)
 
         Notification(self, f'Search saved to {file_name}')
 

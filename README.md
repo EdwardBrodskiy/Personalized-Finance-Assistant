@@ -29,6 +29,7 @@ Install the required packages using the following command:
 
 ```shell
 pip install -r requirements.txt
+pip install -e ./web_app/ui/
 ```
 
 ## Add your transactions

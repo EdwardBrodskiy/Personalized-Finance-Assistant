@@ -5,9 +5,9 @@ from matplotlib import gridspec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from helper_functions import get_hex, extract_tags
 from web_app.components.menu import Menu
 from web_app.components.notification import Notification
-from helper_functions import get_hex, extract_tags
 from web_app.theme_colors import colors
 
 
@@ -23,9 +23,6 @@ class GraphsDisplay(ctk.CTkFrame):
         self.settings.grid_columnconfigure(1, weight=1)
         self.settings.pack(fill='x')
 
-        self.x_axis = ctk.StringVar(value='Date')
-        self.y_axis = ctk.StringVar(value='Value')
-        self.plot_operation = ctk.StringVar(value='Cumulative Sum')
         self.plot_operations = {
             'None': lambda x: x,
             'Cumulative Sum': lambda x: x.cumsum()
@@ -37,7 +34,7 @@ class GraphsDisplay(ctk.CTkFrame):
                 {
                     'values': self.dataframe.columns,
                     'command': self._on_input_change,
-                    'variable': self.x_axis,
+                    'default': 'Date'
                 }
             ),
             'y_axis': (
@@ -46,7 +43,7 @@ class GraphsDisplay(ctk.CTkFrame):
                 {
                     'values': self.dataframe.columns,
                     'command': self._on_input_change,
-                    'variable': self.y_axis,
+                    'default': 'Value'
                 }
             ),
             'plot_operation': (
@@ -55,7 +52,7 @@ class GraphsDisplay(ctk.CTkFrame):
                 {
                     'values': list(self.plot_operations.keys()),
                     'command': self._on_input_change,
-                    'variable': self.plot_operation,
+                    'default': 'Cumulative Sum'
                 }
             ),
             'tags_split': (
@@ -63,8 +60,7 @@ class GraphsDisplay(ctk.CTkFrame):
                 'Tags to split the plot',
                 {
                     'suggestions': extract_tags(self._dataframe['Tags']),
-                    'selected': ('existence', 'life', 'cash'),
-                    'on_change': self._on_input_change,
+                    'command': self._on_input_change,
                     'tag_selection_options': ('',),
                     'suggestions_only': True
                 }
@@ -73,9 +69,6 @@ class GraphsDisplay(ctk.CTkFrame):
         self.graphic_controls_plot.grid(column=0, row=0, sticky='news', padx=5, pady=5)
 
         self.category_columns = self._dataframe.select_dtypes(['category']).columns
-        self.max_cats = ctk.StringVar(value='10')
-        self.max_cats.trace_add('write', self._on_input_change)
-        self.pie_operation = ctk.StringVar(value='Amount')
         self.pie_operations = {
             'Count': lambda x: x,
             'Amount': lambda x: x.cumsum()
@@ -91,7 +84,10 @@ class GraphsDisplay(ctk.CTkFrame):
             'max_cats': (
                 'Entry',
                 'Maximum number of categories',
-                {'textvariable': self.max_cats}
+                {
+                    'command': self._on_input_change,
+                    'default': 10,
+                }
             ),
             'pie_operation': (
                 'OptionMenu',
@@ -99,7 +95,7 @@ class GraphsDisplay(ctk.CTkFrame):
                 {
                     'values': list(self.pie_operations.keys()),
                     'command': self._on_input_change,
-                    'variable': self.pie_operation,
+                    'default': 'Amount'
                 }
             ),
             'tags_cats': (
@@ -107,8 +103,7 @@ class GraphsDisplay(ctk.CTkFrame):
                 'Tags to show',
                 {
                     'suggestions': extract_tags(self._dataframe['Tags']),
-                    'selected': ('existence', 'life', 'cash'),
-                    'on_change': self._on_input_change,
+                    'command': self._on_input_change,
                     'tag_selection_options': (' Incl', ' Excl'),
                     'suggestions_only': True
                 }
@@ -152,28 +147,38 @@ class GraphsDisplay(ctk.CTkFrame):
         self.ax1.clear()
         self.ax2.clear()
         try:
-            selected_tags = self.graphic_controls_plot.elements['tags_split'][1].get()
-            for account in selected_tags:
-                data = self._dataframe[self._dataframe['Tags'].apply(lambda x: account in x)]
-                if len(data) == 0:
-                    continue
-                self.ax1.plot(data[self.x_axis.get()],
-                              self.plot_operations[self.plot_operation.get()](data[self.y_axis.get()]), label=account)
+            x_axis, y_axis = self.graphic_controls_plot['x_axis'].get(), self.graphic_controls_plot['y_axis'].get()
+            plot_operation = self.plot_operations[self.graphic_controls_plot['plot_operation'].get()]
+            selected_tags = self.graphic_controls_plot['tags_split'].get()
+            if selected_tags:
+                for account in selected_tags:
+                    data = self._dataframe[self._dataframe['Tags'].apply(lambda x: account in x)]
+                    if len(data) == 0:
+                        continue
+                    self.ax1.plot(data[x_axis], plot_operation(data[y_axis]), label=account)
+                data = self._dataframe[self._dataframe['Tags'].apply(
+                    lambda x: all(selected_tag not in x for selected_tag in selected_tags))]
+                if len(data):
+                    self.ax1.plot(data[x_axis], plot_operation(data[y_axis]), label='Other Tag rows')
+            else:
+                self.ax1.plot(self._dataframe[x_axis], plot_operation(self._dataframe[y_axis]), label='All')
             self.ax1.legend(fontsize='large')
         except Exception as e:
             Notification(self, f'Error while drawing plot "{e}"')
             print(e)
+            raise e
 
         try:
             df = self._dataframe.copy()
             df['Count'] = 1
-            self._determine_sign(df[self.pie_operation.get()])
-            if self.graphic_controls_pie.elements['positive_values'][1].state() == 'off':
-                df[self.pie_operation.get()] = df[self.pie_operation.get()] * -1
-            df = df[df[self.pie_operation.get()] > 0]
+            pie_operation = self.graphic_controls_pie['pie_operation'].get()
+            self._determine_sign(df[pie_operation])
+            if self.graphic_controls_pie['positive_values'].get() == 'off':
+                df[pie_operation] = df[pie_operation] * -1
+            df = df[df[pie_operation] > 0]
             df['cat'] = self._produce_cat_column(self._dataframe)
             # Calculate the sums
-            sums = df.groupby('cat')[self.pie_operation.get()].sum()
+            sums = df.groupby('cat')[pie_operation].sum()
 
             # Identify the top 10 categories
             top_n = sums.sort_values(ascending=False).head(self.get_max_cats() - 1)
@@ -193,20 +198,21 @@ class GraphsDisplay(ctk.CTkFrame):
         except Exception as e:
             Notification(self, f'Error while drawing pie plot "{e}"')
             print(e)
+            raise e
 
         # Redraw the canvas
         self.canvas.draw()
 
     def _determine_sign(self, series: pd.Series):
         if (series >= 0).all():
-            self.graphic_controls_pie.elements['positive_values'][1].set_state('on')
+            self.graphic_controls_pie['positive_values'].set('on')
         elif (series <= 0).all():
-            self.graphic_controls_pie.elements['positive_values'][1].set_state('off')
+            self.graphic_controls_pie['positive_values'].set('off')
 
     def _produce_cat_column(self, df):
         df = df.copy()
 
-        show_hide_selections = self.graphic_controls_pie.elements['tags_cats'][1].get()
+        show_hide_selections = self.graphic_controls_pie['tags_cats'].get()
         tags_to_show = [tag for tag, key in show_hide_selections if key == 0]
         tags_to_hide = [tag for tag, key in show_hide_selections if key == 1]
         # eliminate non informative tags
@@ -225,7 +231,7 @@ class GraphsDisplay(ctk.CTkFrame):
         return cat
 
     def get_max_cats(self):
-        value = self.max_cats.get()
+        value = self.graphic_controls_pie['max_cats'].get()
         number = 10
         try:
             number = int(value)
