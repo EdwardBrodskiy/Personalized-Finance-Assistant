@@ -60,11 +60,11 @@ def populate_rows_from_source(rows, source):
                         f'Defined formats are {csv_formats.keys()}')
 
     for filename in gather_all_years(directory):
-        file = open(os.path.join(directory, filename))
+        with open(os.path.join(directory, filename)) as file:
+            csv_rows = list(csv.reader(file))
 
-        reader = csv.reader(file)
         first_data_row_found = False
-        for i, row in enumerate(reader):
+        for row in csv_rows:
             if not row:  # skip empty row
                 continue
             # check for header if a data row hasn't been seen yet
@@ -80,8 +80,6 @@ def populate_rows_from_source(rows, source):
 
             map_to_database_row(row, database_row, directory_format)
             rows.append(database_row)
-
-        file.close()
 
 
 def gather_all_years(directory):
