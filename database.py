@@ -31,7 +31,9 @@ class DataBase:
         if database is None:
             return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in database_types.items()})
         database['ref'] = database.index
-        return database.astype(database_types)
+        database = database.astype(database_types)
+        database = database.sort_values(by='Date')
+        return database
 
     def get_merged(self):
         merged = self._read_csv('merged.csv')
