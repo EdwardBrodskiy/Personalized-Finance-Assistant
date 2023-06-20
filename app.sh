@@ -8,6 +8,7 @@ else
 	echo "Creating and installing requirements in venv."
 	python -m venv venv
 	source venv/bin/activate
-	pip install -r requirements.txt &&
-		python app.py
+	pip install -r requirements.txt && pip install -e ./web_app/ui &&
+		python app.py ||
+		rm -r venv
 fi
