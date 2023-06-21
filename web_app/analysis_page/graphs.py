@@ -165,8 +165,6 @@ class GraphsDisplay(ctk.CTkFrame):
             self.ax1.legend(fontsize='large')
         except Exception as e:
             Notification(self, f'Error while drawing plot "{e}"')
-            print(e)
-            raise e
 
         try:
             df = self._dataframe.copy()
@@ -197,8 +195,6 @@ class GraphsDisplay(ctk.CTkFrame):
             self.ax2.legend(labels, loc='upper right')
         except Exception as e:
             Notification(self, f'Error while drawing pie plot "{e}"')
-            print(e)
-            raise e
 
         # Redraw the canvas
         self.canvas.draw()
