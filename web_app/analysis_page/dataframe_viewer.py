@@ -28,8 +28,8 @@ class DataFrameViewer(ctk.CTkFrame):
         self.down_key = ctk.CTkButton(self, text='Down', command=self._go_down, state='disabled')
         self.down_key.grid(column=4, row=0, padx=5, pady=5)
 
-        self.down_key = ctk.CTkButton(self, text='Save CSV', command=self._save_to_csv)
-        self.down_key.grid(column=5, row=0, padx=5, pady=5)
+        self.csv_key = ctk.CTkButton(self, text='Save CSV', command=self._save_to_csv)
+        self.csv_key.grid(column=5, row=0, padx=5, pady=5)
 
         self.table = None
 
