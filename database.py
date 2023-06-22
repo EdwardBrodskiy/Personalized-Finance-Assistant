@@ -10,6 +10,8 @@ from structures import database_types, merged_types, off_record_types
 
 
 class DataBase:
+    suffixes = (' input', ' merged')
+
     def __init__(self):
         self.__path = get_filepaths()['database']
 
@@ -41,6 +43,11 @@ class DataBase:
             return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in merged_types.items()})
         merged['Tags'] = merged['Tags'].apply(lambda x: ast.literal_eval(x))
         return merged.astype(merged_types)
+
+    def get_joined(self):
+        data = self.get_database()
+        merged = self.get_merged()
+        return data.merge(merged, on='ref', suffixes=self.suffixes)
 
     def get_off_record(self):
         cash = self._read_csv('cash.csv')

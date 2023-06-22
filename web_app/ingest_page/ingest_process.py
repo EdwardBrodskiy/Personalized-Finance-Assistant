@@ -1,5 +1,6 @@
 import customtkinter
 
+from configuration import get_gui_settings
 from web_app.components.dataframe_widget import DataFrameWidget
 from helper_functions import ordinal
 from web_app.components.notification import Notification
@@ -24,8 +25,9 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         df_reference_table['Date'] = df_reference_table['Date'].apply(
             lambda x: ordinal(x.day) + x.strftime(' %b %Y'))
         # TODO: add this to config selection
-        df_reference_table = df_reference_table[['ref', 'Date', 'Type', 'Description_x', 'Value', 'Balance']]
-        df_reference_table = df_reference_table.rename({'Description_x': 'Description'})
+        df_reference_table = df_reference_table.rename({f'Description{self.classifier.db.suffixes[0]}': 'Description'})
+        df_reference_table = df_reference_table[get_gui_settings()['classification columns to show']]
+
         self.reference_table = DataFrameWidget(self, df_reference_table, self.interest_row, 2)
         self.reference_table.pack(fill='both', expand=True)
 

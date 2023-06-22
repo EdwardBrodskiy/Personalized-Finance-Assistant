@@ -1,0 +1,10 @@
+{
+  "classification columns to show": [
+    "ref",
+    "Date",
+    "Type",
+    "Description input",
+    "Value",
+    "Balance"
+  ]
+}

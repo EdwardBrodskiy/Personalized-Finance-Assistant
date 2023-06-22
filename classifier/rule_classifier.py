@@ -6,8 +6,8 @@ import pandas as pd
 
 from classifier.tag_rules_parser import rule_to_selector
 from configuration import get_tag_rules, get_filepaths
-from structures import merged_types
 from helper_functions import extract_tags
+from structures import merged_types
 
 
 class Classifier:
@@ -28,7 +28,8 @@ class Classifier:
 
     def begin_classification(self):
         data = self.db.get_database()
-        joined = data.merge(self.merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True)
+        joined = data.merge(self.merged, how='outer', left_on=['ref'], right_on=['ref'], indicator=True,
+                            suffixes=self.db.suffixes)
 
         # labeled = joined[joined['_merge'] == 'both'].drop('_merge', axis=1)
 
@@ -36,19 +37,25 @@ class Classifier:
         if un_labeled.empty:
             return None
 
-        # for the purposes of tagging use the bank description
-        un_labeled = un_labeled.rename(columns={'Description_x': 'Description'})
-        un_labeled['Tags'] = un_labeled['Tags'].apply(lambda x: x if isinstance(x, list) else [])
-        un_labeled['Description_y'] = un_labeled['Description_y'].fillna('')
+        un_labeled.loc[:, 'Tags'] = un_labeled['Tags'].apply(lambda x: x if isinstance(x, list) else [])
+
+        un_labeled = un_labeled.rename(columns={f'Description{self.db.suffixes[0]}': 'Description'})
+
+        # Select string columns only
+        string_columns = un_labeled.select_dtypes(include=['string'])
+        # Replace NaN values with empty strings in these columns
+        for col in string_columns.columns:
+            un_labeled.loc[:, col] = un_labeled.loc[:, col].fillna('')
 
         tag_rules = get_tag_rules()
 
         tagged_data = self._tag_data_based_on_rules(tag_rules, un_labeled)
 
-        tagged_data['Amount'] = tagged_data['Value']
+        tagged_data.loc[:, 'Amount'] = tagged_data['Value']
         # for merged switch back and don't use the bank description
         tagged_data = tagged_data.rename(
-            columns={'Description': 'Description_x', 'Description_y': 'Description'})
+            columns={'Description': f'Description{self.db.suffixes[0]}',
+                     f'Description{self.db.suffixes[1]}': 'Description'})
 
         # extract and reformat automatically labeled data
         self.automatically_labeled = tagged_data[tagged_data['Tags'].apply(lambda x: 'Automatic' in x)]

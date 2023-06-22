@@ -2,9 +2,10 @@ import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from web_app.analysis_page.dataframe_viewer import DataFrameViewer
-from web_app.analysis_page.insights import Insights
-from web_app.components.search import Search
 from web_app.analysis_page.graphs import GraphsDisplay
+from web_app.analysis_page.insights import Insights
+from web_app.components.notification import Notification
+from web_app.components.search import Search
 
 
 class AnalysisPage(ctk.CTkScrollableFrame):
@@ -15,7 +16,7 @@ class AnalysisPage(ctk.CTkScrollableFrame):
 
         self.canvas = None
 
-        self.dataframe = self.get_joined()
+        self.dataframe = self.db.get_joined()
 
         self.searched_dataframe = self.dataframe.copy()
 
@@ -42,7 +43,10 @@ class AnalysisPage(ctk.CTkScrollableFrame):
 
     def on_new_search(self, new_search):
         self.searched_dataframe = new_search
-        self.on_input_change()
+        if len(self.searched_dataframe):
+            self.on_input_change()
+        else:
+            Notification(self, 'Search parameters resulted in empty table ')
 
     def on_input_change(self, *args):
         self.graphics.dataframe = self.searched_dataframe
@@ -56,8 +60,3 @@ class AnalysisPage(ctk.CTkScrollableFrame):
         self.canvas = FigureCanvasTkAgg(fig, master=self)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(expand=1)
-
-    def get_joined(self):
-        data = self.db.get_database()
-        merged = self.db.get_merged()
-        return data.merge(merged, on='ref')

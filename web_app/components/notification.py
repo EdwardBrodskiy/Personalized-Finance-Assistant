@@ -3,6 +3,7 @@ import customtkinter as ctk
 from web_app.theme_colors import colors
 
 
+# TODO : would be nice to add a feature of  don't add new notification if an identical one is already shown
 class Notification(ctk.CTkFrame):
     notifications = []
 

@@ -12,6 +12,10 @@ def get_tag_rules():
     return try_get_config('tag_rules.json')
 
 
+def get_gui_settings():
+    return try_get_config('gui_settings.json')
+
+
 def get_transaction_formats():
     return try_get_config('transaction_formats.json')
 
