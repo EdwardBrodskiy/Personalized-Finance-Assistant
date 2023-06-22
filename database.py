@@ -37,7 +37,6 @@ class DataBase:
         database = self._initialize_missing_columns(database, database_types,
                                                     get_transaction_formats()['input defaults'])
         database = database.astype(database_types)
-        database = database.sort_values(by='Date')
         return database
 
     def get_merged(self):
