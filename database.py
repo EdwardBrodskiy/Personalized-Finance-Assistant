@@ -2,11 +2,12 @@ import ast
 import logging
 import os
 
+import numpy as np
 import pandas as pd
 
-from configuration import get_filepaths
+from configuration import get_filepaths, get_transaction_formats
 from helper_functions import ensure_dir_exists
-from structures import database_types, merged_types, off_record_types
+from structures import database_types, merged_types, additional_database_types
 
 
 class DataBase:
@@ -33,6 +34,8 @@ class DataBase:
         if database is None:
             return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in database_types.items()})
         database['ref'] = database.index
+        database = self._initialize_missing_columns(database, database_types,
+                                                    get_transaction_formats()['input defaults'])
         database = database.astype(database_types)
         database = database.sort_values(by='Date')
         return database
@@ -49,11 +52,22 @@ class DataBase:
         merged = self.get_merged()
         return data.merge(merged, on='ref', suffixes=self.suffixes)
 
-    def get_off_record(self):
-        cash = self._read_csv('cash.csv')
-        if cash is None:
-            return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in off_record_types.items()})
-        return cash.astype(merged_types)
+    def _initialize_missing_columns(self, df: pd.DataFrame, expected_columns, defaults):
+        df = df.copy()
+        for column in expected_columns:
+            if column in additional_database_types:
+                continue
+            if column not in df.columns.tolist():
+                df[column] = df['Source'].apply(lambda x: self._grab_best_default(x, column, defaults))
+        return df
+
+    @staticmethod
+    def _grab_best_default(source, column, defaults):
+        if source in defaults and column in defaults[source]:
+            return defaults[source][column]
+        if 'master' in defaults and column in defaults['master']:
+            return defaults['master'][column]
+        return np.nan
 
     def _read_csv(self, filename):
         try:
@@ -73,10 +87,6 @@ class DataBase:
     def add_to_merged(self, new_items: pd.DataFrame):
         old_items = self.get_merged()
         self._add_new_items(old_items, new_items, 'merged')
-
-    def add_to_off_record(self, new_items: pd.DataFrame):
-        old_items = self.get_off_record()
-        self._add_new_items(old_items, new_items, 'off_record')
 
     def _add_new_items(self, old_items, new_items: pd.DataFrame, where):
         if len(new_items):

@@ -2,11 +2,19 @@
   "DataBaseTypes": {
     "Date": "datetime64[ns]",
     "Type": "category",
+    "Descriptor": "string",
     "Description": "string",
     "Value": "float64",
     "Balance": "float64",
     "Account Name": "string",
-    "Account Number": "string"
+    "Account Number": "string",
+    "Currency": "category"
+  },
+  "input defaults": {
+    "master" : {
+      "Currency" : "GBP",
+      "Descriptor": ""
+    }
   },
   "input data column format": {
     "NatWest": [
@@ -22,6 +30,12 @@
       "Date",
       "Description",
       "Value"
+    ],
+    "Cash": [
+      "Date",
+      "Description",
+      "Value",
+      "Currency"
     ]
   }
 }

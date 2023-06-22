@@ -71,7 +71,8 @@ def populate_rows_from_source(rows, source):
             # (this reduces the chance that invalid data rows are not reported)
             if not first_data_row_found:
                 first_data_row_found = is_data_row(row, directory_format)
-                continue
+                if not first_data_row_found:
+                    continue
 
             clean_numerical_columns(row, directory_format)
 
@@ -99,7 +100,7 @@ def is_data_row(row, directory_format):
     csv_formats = get_transaction_formats()['input data column format']
     csv_column_names = csv_formats[directory_format]
     # check if non string values are of the correct type
-    type_casters = {'float64': float, 'int64': int, 'datetime64[ns]': pd.to_datetime}
+    type_casters = {'float64': float, 'int64': int, 'datetime64[ns]': lambda x: pd.to_datetime(x, dayfirst=True)}
     for column_name in [c for c in csv_column_names if
                         database_types[c] in type_casters]:
         expected_type = database_types[column_name]
