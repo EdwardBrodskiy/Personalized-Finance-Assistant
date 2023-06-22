@@ -146,8 +146,9 @@ def clean_numerical_columns(row, directory_format):
 
 def find_new(possibly_new, existing):
     combined_key = ['Date', 'Value', 'Balance', 'Source']
-    df1 = possibly_new[combined_key]
-    df2 = existing[combined_key]
+    # cast to string and replace nan as nan == nan is False
+    df1 = possibly_new[combined_key].astype('string').fillna('<empty>')
+    df2 = existing[combined_key].astype('string').fillna('<empty>')
 
     # Convert each row in the dataframes to a tuple and count the occurrences of each tuple
     counter_df1 = Counter(df1.apply(lambda row: TupleWithAKey(row, key=row.name), axis=1))
@@ -172,6 +173,9 @@ class TupleWithAKey:
 
     def __hash__(self):
         return hash(self.array)
+
+    def __repr__(self):
+        return repr(self.array)
 
 
 def index(db):

@@ -291,7 +291,7 @@ class SubTagFilter(Filter):
 
         self.tag_entry = AutoSuggestTagEntry(
             self.selector_frame, suggestions=self.tags, selected=self._try_load('selected_tags', ()), height=20,
-            on_change=self._on_change, tag_selection_options=(' - Incl', ' - Excl'), suggestions_only=True
+            command=self._on_change, tag_selection_options=(' - Incl', ' - Excl'), suggestions_only=True
         )
         self.tag_entry.pack(fill='x', padx=5, pady=5)
 
