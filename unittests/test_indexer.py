@@ -13,9 +13,9 @@ def build_df(combo):
     return pd.DataFrame(map(lambda k: rows[k], combo), columns=['Date', 'Value', 'Balance', 'Source']).astype('string')
 
 
-def assert_order_irrelevant(df1, df2):
-    result = df1.sort_values(df1.columns.to_list()).reset_index(drop=True)
-    expected = df2.sort_values(df2.columns.to_list()).reset_index(drop=True)
+def assert_order_irrelevant(output, expected):
+    result = output.sort_values(output.columns.to_list()).reset_index(drop=True)
+    expected = expected.sort_values(expected.columns.to_list()).reset_index(drop=True)
     pd.testing.assert_frame_equal(result, expected)
 
 
