@@ -25,7 +25,8 @@ class DBManagerPage(customtkinter.CTkFrame):
                 'Toggle',
                 'Run operations on main database',
                 {
-                    'command': self.run_on_main
+                    'command': self.run_on_main,
+                    'default': 'on' if self.db.is_on_main else 'off'
                 }
             ),
 

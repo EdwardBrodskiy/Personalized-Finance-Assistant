@@ -15,6 +15,7 @@ class DataBase:
 
     def __init__(self):
         self.__path = get_filepaths()['database']
+        self.__is_on_main = False
 
     def run_on_main(self, gui=False):
         confirmation = True
@@ -23,11 +24,17 @@ class DataBase:
 
         if confirmation:
             self.__path = os.path.join(self.__path, 'protected')
+            self.__is_on_main = True
         else:
             raise FileNotFoundError('Remove run on main!')
 
     def run_not_on_main(self):
         self.__path = get_filepaths()['database']
+        self.__is_on_main = False
+
+    @property
+    def is_on_main(self):
+        return self.__is_on_main
 
     def get_database(self):
         database = self._read_csv('all.csv')
