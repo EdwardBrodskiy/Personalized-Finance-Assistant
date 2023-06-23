@@ -24,7 +24,6 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         df_reference_table = self.classifier.un_labeled.copy()
         df_reference_table['Date'] = df_reference_table['Date'].apply(
             lambda x: ordinal(x.day) + x.strftime(' %b %Y'))
-        # TODO: add this to config selection
         df_reference_table = df_reference_table.rename({f'Description{self.classifier.db.suffixes[0]}': 'Description'})
         df_reference_table = df_reference_table[get_gui_settings()['classification columns to show']]
 
