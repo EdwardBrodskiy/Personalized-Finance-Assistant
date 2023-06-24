@@ -28,7 +28,7 @@ class DataFrameWidget(customtkinter.CTkFrame):
 
     def scroll(self, offset):
         if offset == 0:
-            return
+            return False
         # Update row_of_interest and start_row, end_row
         new_row_of_interest = self._clamp(self.row_of_interest + offset)
         new_start_row = self._clamp(new_row_of_interest - self.number_of_neighbors)
@@ -64,9 +64,17 @@ class DataFrameWidget(customtkinter.CTkFrame):
 
         self._color_row(new_row_of_interest, colors['primary'])
 
+        hasScrolled = (
+                new_start_row != self.row_of_interest or
+                new_start_row != self.start_row or
+                new_end_row != self.end_row
+                )
+
         self.row_of_interest = new_row_of_interest
         self.start_row = new_start_row
         self.end_row = new_end_row
+
+        return hasScrolled
 
     def _for_rows(self, start_index, end_index, function):
         for i in range(start_index, end_index+1):
