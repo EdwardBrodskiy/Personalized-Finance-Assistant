@@ -150,7 +150,14 @@ class Classifier:
     def process_incoming_input(self, data):
         new_data = pd.DataFrame(data)
         new_data.astype(merged_types)
-        self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
+
+        ref = new_data.loc[0, 'ref']
+        if ref in self.labeled_data['ref'].values:
+            match = self.labeled_data['ref'] == ref
+            self.labeled_data.loc[match] = new_data
+        else:
+            self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
+
         display_files_path = get_filepaths()['display_files']
         if not os.path.exists(display_files_path):
             os.makedirs(display_files_path)

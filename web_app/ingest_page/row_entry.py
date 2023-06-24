@@ -16,6 +16,7 @@ class RowEntry(customtkinter.CTkFrame):
 
         self.fields = None
         self.controls = None
+        self.rows = {}
         self.row_index = 1
         self.first_table_draw = True
         self.part_labeled_row = None
@@ -93,10 +94,19 @@ class RowEntry(customtkinter.CTkFrame):
         self.clear_entry()
 
         for row in user_entries:
-            for i, (key, value) in enumerate(row.items()):
-                label = customtkinter.CTkLabel(self, text=value)
-                label.grid(row=self.row_index, column=i, sticky='w', padx=(0, 5), pady=1)
-            self.row_index += 1
+            ref = row['ref']
+            if ref in self.rows:
+                label_row = self.rows[ref]
+                for i, (key, value) in enumerate(row.items()):
+                    label_row[i].configure(text=value)
+            else:
+                label_row = []
+                for i, (key, value) in enumerate(row.items()):
+                    label = customtkinter.CTkLabel(self, text=value)
+                    label.grid(row=self.row_index, column=i, sticky='w', padx=(0, 5), pady=1)
+                    label_row.append(label)
+                self.rows[ref] = label_row
+                self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
