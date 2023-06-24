@@ -58,10 +58,11 @@ class DataFrameViewer(ctk.CTkFrame):
         self.set_button_states()
 
     def _go_up(self):
-        Notification(self, 'Not implemented')
+        self.table.scroll(-1)
+        self.set_button_states()
 
     def _go_down(self):
-        self.table.scroll_down_one_row()
+        self.table.scroll(1)
         self.set_button_states()
 
     def _save_to_csv(self):
