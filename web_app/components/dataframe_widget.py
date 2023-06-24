@@ -1,4 +1,5 @@
 import customtkinter
+import logging
 from web_app.theme_colors import colors
 
 
@@ -82,13 +83,21 @@ class DataFrameWidget(customtkinter.CTkFrame):
             self.rows_of_labels[row_index].append(label)
 
     def _destroy_row(self, row_index):
+        if row_index not in self.rows_of_labels:
+            logging.error(f"Unable to delete {row_index}, is your scroll offset larger than number_of_neighbors?")
+            return
         row = self.rows_of_labels.pop(row_index)
         for label in row:
             label.destroy()
 
     def _color_row(self, row_index, color):
+        if row_index not in self.rows_of_labels:
+            return
         for label in self.rows_of_labels[row_index]:
             label.configure(fg_color=color)
 
     def _clamp(self, x):
-        return max(0, min(len(self.dataframe)-1, x))
+        return self._clamp_range(0, len(self.dataframe)-1, x)
+
+    def _clamp_range(self, lower, upper, x):
+        return max(lower, min(upper, x))
