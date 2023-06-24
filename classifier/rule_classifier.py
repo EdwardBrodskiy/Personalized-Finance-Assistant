@@ -148,13 +148,14 @@ class Classifier:
         return user_inputs
 
     def process_incoming_input(self, data):
-        new_data = pd.DataFrame(data)
-        new_data.astype(merged_types)
+        new_data = pd.DataFrame(data, columns=self.labeled_data.columns)
+        new_data = new_data.astype(merged_types)
 
         ref = new_data.loc[0, 'ref']
         if ref in self.labeled_data['ref'].values:
             match = self.labeled_data['ref'] == ref
-            self.labeled_data.loc[match] = new_data
+            index = self.labeled_data[match].index[0]
+            self.labeled_data.iloc[index] = new_data.iloc[0]
         else:
             self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
 
