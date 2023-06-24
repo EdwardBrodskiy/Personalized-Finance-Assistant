@@ -17,7 +17,7 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
 
         # Entry
 
-        self.row_entry = RowEntry(self, on_enter=self.data_entered)
+        self.row_entry = RowEntry(self, on_enter=self.data_entered, on_back=self.go_back)
         self.row_entry.pack(fill='both', expand=True)
 
         # Reference
@@ -30,16 +30,31 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         self.reference_table = DataFrameWidget(self, df_reference_table, self.interest_row, 2)
         self.reference_table.pack(fill='both', expand=True)
 
-        self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
+        self.last_entry_row = self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row)
+        self.row_entry.add_entry_row_at(*self.last_entry_row)
 
     def data_entered(self, data):
         if data is not None:
             self.classifier.process_incoming_input(data)
 
-        self.interest_row += 1
-        self.row_entry.add_entry_row_at(*self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row))
+        if self.reference_table.scroll(1):
+            self.interest_row += 1
+            self.last_entry_row = self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row)
+            self.row_entry.add_entry_row_at(*self.last_entry_row)
+        else:
+            self.row_entry.add_entry_row_at(*self.last_entry_row)
 
-        self.reference_table.scroll_down_one_row()
+        # move scroll to the end
+        self.update_idletasks()
+        self._parent_canvas.yview_moveto(1)
+
+    def go_back(self):
+        if self.reference_table.scroll(-1):
+            self.interest_row -= 1
+            self.last_entry_row = self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row)
+            self.row_entry.add_entry_row_at(*self.last_entry_row)
+        else:
+            self.row_entry.add_entry_row_at(*self.last_entry_row)
 
         # move scroll to the end
         self.update_idletasks()
