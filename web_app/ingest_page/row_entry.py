@@ -45,9 +45,7 @@ class RowEntry(customtkinter.CTkFrame):
             field.grid(row=self.row_index, column=i, sticky='nsew', padx=(0, 5), pady=5)
 
         if self.first_table_draw:
-            self.grid_columnconfigure(list(range(len(self.fields))), weight=1)
-            self.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
-            self.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=5)
+            self._container_config(self)
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
 
@@ -93,23 +91,57 @@ class RowEntry(customtkinter.CTkFrame):
 
         self.clear_entry()
 
-        for row in user_entries:
-            ref = row['ref']
-            if ref in self.rows:
-                label_row = self.rows[ref]
-                for i, (key, value) in enumerate(row.items()):
-                    label_row[i].configure(text=value)
-            else:
-                label_row = []
-                for i, (key, value) in enumerate(row.items()):
-                    label = customtkinter.CTkLabel(self, text=value)
-                    label.grid(row=self.row_index, column=i, sticky='w', padx=(0, 5), pady=1)
-                    label_row.append(label)
-                self.rows[ref] = label_row
+        incoming_rows = len(user_entries)
+        ref = user_entries[0]['ref']
+        if ref in self.rows:
+            label_rows = self.rows[ref]['label_rows']
+            existing_ref_rows = len(label_rows)
+            for i in range(max((existing_ref_rows, incoming_rows))):
+                if i > incoming_rows-1:
+                    label_row = label_rows[i]
+                    for label in label_row:
+                        label.destroy()
+                    del label_rows[i]
+                    continue
+
+                if i > existing_ref_rows-1:
+                    row = user_entries[i]
+                    container = self.rows[ref]['container']
+                    label_rows.append(self._draw_label_row(container, row, i))
+                    continue
+
+                label_row = label_rows[i]
+                row = user_entries[i]
+                for column, (key, value) in enumerate(row.items()):
+                    label_row[column].configure(text=value)
+
+        else:
+            self.rows[ref] = {
+                    'label_rows': [],
+                    'container': customtkinter.CTkFrame(self)
+                    }
+            container = self.rows[ref]['container']
+            self._container_config(container)
+            container.grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky="ew", pady=5)
+            for i, row in enumerate(user_entries):
+                self.rows[ref]['label_rows'].append(self._draw_label_row(container, row, i))
                 self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
+
+    def _draw_label_row(self, parent, row, grid_row):
+        label_row = []
+        for column, (key, value) in enumerate(row.items()):
+            label = customtkinter.CTkLabel(parent, text=value)
+            label.grid(row=grid_row, column=column, sticky='w', padx=5, pady=1)
+            label_row.append(label)
+        return label_row
+
+    def _container_config(self, container):
+        container.grid_columnconfigure(list(range(len(self.fields))), weight=1, uniform='col')
+        container.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=5, uniform='col')
+        container.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=5, uniform='col')
 
     def skip(self):
         self.clear_entry()
