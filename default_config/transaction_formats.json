@@ -14,7 +14,10 @@
     "master" : {
       "Currency" : "GBP",
       "Descriptor": ""
-    }
+    },
+    "HSBC" : {
+	  "invertedCSV": true
+	}
   },
   "input data column format": {
     "NatWest": [

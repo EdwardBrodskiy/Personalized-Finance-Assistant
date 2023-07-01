@@ -10,6 +10,7 @@ import pandas as pd
 from configuration import get_filepaths, get_transaction_formats
 from helper_functions import ensure_dir_exists
 from structures import database_types
+from database import DataBase
 
 
 def get_items_from_input():
@@ -45,6 +46,9 @@ def populate_rows_from_source(rows, source):
     csv_formats = get_transaction_formats()['input data column format']
     database_columns = list(database_types.keys())
 
+    defaults = get_transaction_formats()['input defaults']
+    invert_csv = DataBase._grab_best_default(source, 'invertedCSV', defaults)
+
     directory = os.path.join(inputs_path, source)
     if not os.path.isdir(directory):
         return  # skip if not a directory
@@ -62,6 +66,8 @@ def populate_rows_from_source(rows, source):
     for filename in gather_all_years(directory):
         with open(os.path.join(directory, filename)) as file:
             csv_rows = list(csv.reader(file))
+            if invert_csv:
+                csv_rows.reverse()
 
         first_data_row_found = False
         for row in csv_rows:
