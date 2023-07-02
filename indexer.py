@@ -10,7 +10,6 @@ import pandas as pd
 from configuration import get_filepaths, get_transaction_formats, get_best_default
 from helper_functions import ensure_dir_exists
 from structures import database_types
-from database import DataBase
 
 
 def get_items_from_input():
@@ -18,20 +17,30 @@ def get_items_from_input():
     database_columns = list(database_types.keys())
     ensure_dir_exists(inputs_path)
 
-    all_rows = []
+    items_table = pd.DataFrame(columns=database_columns)
+
     for source in os.listdir(inputs_path):
-        populate_rows_from_source(all_rows, source)
+        rows = []
+        sort_key = get_best_default(source, 'SortBy')
 
-    items_table = pd.DataFrame(data=all_rows, columns=database_columns)
+        populate_rows_from_source(rows, source)
 
-    dated_columns = [
-        column
-        for column, expected_type
-        in database_types.items()
-        if expected_type == 'datetime64[ns]'
-    ]
-    for dated_column in dated_columns:
-        items_table[dated_column] = pd.to_datetime(items_table[dated_column], dayfirst=True)
+        df_rows = pd.DataFrame(data=rows, columns=database_columns)
+
+        dated_columns = [
+            column
+            for column, expected_type
+            in database_types.items()
+            if expected_type == 'datetime64[ns]'
+        ]
+        for dated_column in dated_columns:
+            df_rows[dated_column] = pd.to_datetime(df_rows[dated_column], dayfirst=True)
+
+        if sort_key is not None:
+            df_rows = df_rows.sort_values(by=sort_key)
+        print(df_rows)
+        items_table = pd.concat([items_table, df_rows], ignore_index=True)
+
     items_table['ref'] = items_table.index
 
     items_table = items_table.astype(database_types)
@@ -45,8 +54,6 @@ def populate_rows_from_source(rows, source):
     inputs_path = get_filepaths()['inputs']
     csv_formats = get_transaction_formats()['input data column format']
     database_columns = list(database_types.keys())
-
-    invert_csv = get_best_default(source, 'invertedCSV')
 
     directory = os.path.join(inputs_path, source)
     if not os.path.isdir(directory):
@@ -65,8 +72,6 @@ def populate_rows_from_source(rows, source):
     for filename in gather_all_years(directory):
         with open(os.path.join(directory, filename)) as file:
             csv_rows = list(csv.reader(file))
-            if invert_csv:
-                csv_rows.reverse()
 
         first_data_row_found = False
         for row in csv_rows:

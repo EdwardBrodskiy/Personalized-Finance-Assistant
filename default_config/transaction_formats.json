@@ -11,13 +11,14 @@
     "Currency": "category"
   },
   "input defaults": {
-    "master" : {
+    "master": {
       "Currency" : "GBP",
-      "Descriptor": ""
+      "Descriptor": "",
+      "SortBy": null
     },
-    "HSBC" : {
-	  "invertedCSV": true
-	}
+	"HSBC": {
+      "SortBy": "Date"
+    }
   },
   "input data column format": {
     "NatWest": [
