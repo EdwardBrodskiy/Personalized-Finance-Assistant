@@ -7,7 +7,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from configuration import get_filepaths, get_transaction_formats
+from configuration import get_filepaths, get_transaction_formats, get_best_default
 from helper_functions import ensure_dir_exists
 from structures import database_types
 from database import DataBase
@@ -46,8 +46,7 @@ def populate_rows_from_source(rows, source):
     csv_formats = get_transaction_formats()['input data column format']
     database_columns = list(database_types.keys())
 
-    defaults = get_transaction_formats()['input defaults']
-    invert_csv = DataBase._grab_best_default(source, 'invertedCSV', defaults)
+    invert_csv = get_best_default(source, 'invertedCSV')
 
     directory = os.path.join(inputs_path, source)
     if not os.path.isdir(directory):

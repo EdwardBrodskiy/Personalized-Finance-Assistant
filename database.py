@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from configuration import get_filepaths, get_transaction_formats
+from configuration import get_filepaths,  get_best_default
 from helper_functions import ensure_dir_exists
 from structures import database_types, merged_types, additional_database_types
 
@@ -41,8 +41,7 @@ class DataBase:
         if database is None:
             return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in database_types.items()})
         database['ref'] = database.index
-        database = self._initialize_missing_columns(database, database_types,
-                                                    get_transaction_formats()['input defaults'])
+        database = self._initialize_missing_columns(database, database_types)
         database = database.astype(database_types)
         return database
 
@@ -58,22 +57,19 @@ class DataBase:
         merged = self.get_merged()
         return data.merge(merged, on='ref', suffixes=self.suffixes)
 
-    def _initialize_missing_columns(self, df: pd.DataFrame, expected_columns, defaults):
+    def _initialize_missing_columns(self, df: pd.DataFrame, expected_columns):
         df = df.copy()
         for column in expected_columns:
             if column in additional_database_types:
                 continue
             if column not in df.columns.tolist():
-                df[column] = df['Source'].apply(lambda x: self._grab_best_default(x, column, defaults))
+                df[column] = df['Source'].apply(lambda x: self._grab_best_default(x, column))
         return df
 
     @staticmethod
     def _grab_best_default(source, column, defaults):
-        if source in defaults and column in defaults[source]:
-            return defaults[source][column]
-        if 'master' in defaults and column in defaults['master']:
-            return defaults['master'][column]
-        return np.nan
+        default = get_best_default()
+        return default if default is not None else np.nan
 
     def _read_csv(self, filename):
         try:

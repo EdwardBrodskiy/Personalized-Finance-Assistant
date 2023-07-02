@@ -20,6 +20,15 @@ def get_transaction_formats():
     return try_get_config('transaction_formats.json')
 
 
+def get_best_default(source, column):
+    defaults = get_transaction_formats()['input defaults']
+    if source in defaults and column in defaults[source]:
+        return defaults[source][column]
+    if 'master' in defaults and column in defaults['master']:
+        return defaults['master'][column]
+    return None
+
+
 def try_get_config(filename):
     try:
         with open(os.path.join('config', filename)) as file:
