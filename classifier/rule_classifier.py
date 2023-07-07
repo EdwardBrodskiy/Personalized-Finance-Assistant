@@ -126,7 +126,7 @@ class Classifier:
             'ref': ref,
             'Description': str_entries[0] if string_entries is not None else None,
             'Amount': str_entries[1] if string_entries is not None else None,
-            'Tags': tag
+            'Tags': tag if tag is not None else ()
         } for str_entries, tag in zip_longest(string_entries, split_tags)]
 
         try:
@@ -150,10 +150,6 @@ class Classifier:
     def process_incoming_input(self, data):
         new_data = pd.DataFrame(data, columns=self.labeled_data.columns)
         new_data = new_data.astype(merged_types)
-
-        for i, tag in enumerate(new_data['Tags'].values):
-            if tag is None:
-                new_data.at[i, 'Tags'] = ()
 
         ref = new_data.loc[0, 'ref']
         if ref in self.labeled_data['ref'].values:
@@ -180,8 +176,6 @@ class Classifier:
 
         else:
             self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
-
-        print(self.labeled_data)
 
         display_files_path = get_filepaths()['display_files']
         if not os.path.exists(display_files_path):
