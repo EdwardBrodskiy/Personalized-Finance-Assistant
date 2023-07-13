@@ -4,6 +4,10 @@ This is an accounting program made to track you day to day transactions. It is a
 your transactions while part labeling others and letting you fill in the details. On top of this it provides
 analysis functions to view and study your use of money.
 
+## Preview
+
+![Preview](https://github.com/EdwardBrodskiy/Personalized-Finance-Assistant/blob/master/sample-images/preview.jpg)
+
 # Setting up
 
 First make sure you are in the root of the project directory.
