@@ -65,7 +65,8 @@ class DataBase:
             f'Description{self.suffixes[1]}': '',
             'Amount': joined['Value']
         })
-        joined.loc[joined['Tags'].isnull(), 'Tags'] = joined.loc[joined['Tags'].isnull(), 'Tags'].apply(lambda x: [])
+        joined.loc[joined['Tags'].isnull(), 'Tags'] = joined.loc[joined['Tags'].isnull(), 'Tags'].apply(
+            lambda x: ['unlabeled'])
 
         if sort_on is not None and sort_on in joined.columns:
             joined = joined.sort_values(by=sort_on)
