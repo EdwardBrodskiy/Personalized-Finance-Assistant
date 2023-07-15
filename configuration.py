@@ -22,8 +22,14 @@ def get_transaction_formats():
 
 def get_best_default(source, column):
     defaults = get_transaction_formats()['input defaults']
+    # full match with source
     if source in defaults and column in defaults[source]:
         return defaults[source][column]
+    # partial match with source e.g. NatWest
+    general_source_type = source.split()[0]
+    if general_source_type in defaults and column in defaults[general_source_type]:
+        return defaults[general_source_type][column]
+    # Global setting
     if 'master' in defaults and column in defaults['master']:
         return defaults['master'][column]
     return None

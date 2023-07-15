@@ -22,10 +22,12 @@ def get_items_from_input():
     for source in os.listdir(inputs_path):
         rows = []
         sort_key = get_best_default(source, 'SortBy')
+        is_day_first = get_best_default(source, 'dayFirst')
+        is_day_first = True if is_day_first is None else is_day_first  # day/month/year if none specified
 
         populate_rows_from_source(rows, source)
 
-        df_rows = pd.DataFrame(data=rows, columns=database_columns)
+        incoming_rows = pd.DataFrame(data=rows, columns=database_columns)
 
         dated_columns = [
             column
@@ -34,12 +36,18 @@ def get_items_from_input():
             if expected_type == 'datetime64[ns]'
         ]
         for dated_column in dated_columns:
-            df_rows[dated_column] = pd.to_datetime(df_rows[dated_column], dayfirst=True)
+            incoming_rows[dated_column] = pd.to_datetime(incoming_rows[dated_column], dayfirst=is_day_first)
 
-        if sort_key is not None:
-            df_rows = df_rows.sort_values(by=sort_key)
-        print(df_rows)
-        items_table = pd.concat([items_table, df_rows], ignore_index=True)
+        if sort_key is not None and sort_key in incoming_rows.columns:
+            incoming_rows = incoming_rows.sort_values(by=sort_key)
+        print(incoming_rows)
+
+        for column in incoming_rows.columns:
+            default_value = get_best_default(source, column)
+            if default_value is not None:
+                incoming_rows[column] = incoming_rows[column].fillna(default_value)
+
+        items_table = pd.concat([items_table, incoming_rows], ignore_index=True)
 
     items_table['ref'] = items_table.index
 

@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from configuration import get_filepaths,  get_best_default
+from configuration import get_filepaths, get_best_default
 from helper_functions import ensure_dir_exists
 from structures import database_types, merged_types, additional_database_types
 
@@ -41,7 +41,11 @@ class DataBase:
         if database is None:
             return pd.DataFrame({name: pd.Series(dtype=column_type) for name, column_type in database_types.items()})
         database['ref'] = database.index
+
+        # This initialization handles the case when a new column is added in config and is missing completely it does
+        # not handle absent values incoming ingest data that is the responsibility of the indexer
         database = self._initialize_missing_columns(database, database_types)
+
         database = database.astype(database_types)
         return database
 
@@ -52,10 +56,20 @@ class DataBase:
         merged['Tags'] = merged['Tags'].apply(lambda x: ast.literal_eval(x))
         return merged.astype(merged_types)
 
-    def get_joined(self):
+    def get_joined(self, sort_on=None):
         data = self.get_database()
         merged = self.get_merged()
-        return data.merge(merged, on='ref', suffixes=self.suffixes)
+        joined = data.merge(merged, how='outer', on='ref', suffixes=self.suffixes)
+
+        joined = joined.fillna({
+            f'Description{self.suffixes[1]}': '',
+            'Amount': joined['Value']
+        })
+        joined.loc[joined['Tags'].isnull(), 'Tags'] = joined.loc[joined['Tags'].isnull(), 'Tags'].apply(lambda x: [])
+
+        if sort_on is not None and sort_on in joined.columns:
+            joined = joined.sort_values(by=sort_on)
+        return joined
 
     def _initialize_missing_columns(self, df: pd.DataFrame, expected_columns):
         df = df.copy()
@@ -67,8 +81,8 @@ class DataBase:
         return df
 
     @staticmethod
-    def _grab_best_default(source, column, defaults):
-        default = get_best_default()
+    def _grab_best_default(source, column):
+        default = get_best_default(source, column)
         return default if default is not None else np.nan
 
     def _read_csv(self, filename):

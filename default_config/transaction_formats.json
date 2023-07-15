@@ -14,10 +14,8 @@
     "master": {
       "Currency" : "GBP",
       "Descriptor": "",
-      "SortBy": null
-    },
-	"HSBC": {
-      "SortBy": "Date"
+      "SortBy": "Date",
+      "dayFirst": true
     }
   },
   "input data column format": {
