@@ -7,7 +7,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from configuration import get_filepaths, get_transaction_formats
+from configuration import get_filepaths, get_transaction_formats, get_best_default
 from helper_functions import ensure_dir_exists
 from structures import database_types
 
@@ -17,20 +17,38 @@ def get_items_from_input():
     database_columns = list(database_types.keys())
     ensure_dir_exists(inputs_path)
 
-    all_rows = []
+    items_table = pd.DataFrame(columns=database_columns)
+
     for source in os.listdir(inputs_path):
-        populate_rows_from_source(all_rows, source)
+        rows = []
+        sort_key = get_best_default(source, 'SortBy')
+        is_day_first = get_best_default(source, 'dayFirst')
+        is_day_first = True if is_day_first is None else is_day_first  # day/month/year if none specified
 
-    items_table = pd.DataFrame(data=all_rows, columns=database_columns)
+        populate_rows_from_source(rows, source)
 
-    dated_columns = [
-        column
-        for column, expected_type
-        in database_types.items()
-        if expected_type == 'datetime64[ns]'
-    ]
-    for dated_column in dated_columns:
-        items_table[dated_column] = pd.to_datetime(items_table[dated_column], dayfirst=True)
+        incoming_rows = pd.DataFrame(data=rows, columns=database_columns)
+
+        dated_columns = [
+            column
+            for column, expected_type
+            in database_types.items()
+            if expected_type == 'datetime64[ns]'
+        ]
+        for dated_column in dated_columns:
+            incoming_rows[dated_column] = pd.to_datetime(incoming_rows[dated_column], dayfirst=is_day_first)
+
+        if sort_key is not None and sort_key in incoming_rows.columns:
+            incoming_rows = incoming_rows.sort_values(by=sort_key)
+        print(incoming_rows)
+
+        for column in incoming_rows.columns:
+            default_value = get_best_default(source, column)
+            if default_value is not None:
+                incoming_rows[column] = incoming_rows[column].fillna(default_value)
+
+        items_table = pd.concat([items_table, incoming_rows], ignore_index=True)
+
     items_table['ref'] = items_table.index
 
     items_table = items_table.astype(database_types)

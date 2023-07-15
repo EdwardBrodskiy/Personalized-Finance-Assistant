@@ -11,9 +11,11 @@
     "Currency": "category"
   },
   "input defaults": {
-    "master" : {
+    "master": {
       "Currency" : "GBP",
-      "Descriptor": ""
+      "Descriptor": "",
+      "SortBy": "Date",
+      "dayFirst": true
     }
   },
   "input data column format": {

@@ -8,7 +8,7 @@ from web_app.components.notification import Notification
 from web_app.components.search import Search
 
 
-class AnalysisPage(ctk.CTkScrollableFrame):
+class AnalysisPage(ctk.CTkScrollableFrame):  # TODO: Handle currency
     def __init__(self, master, db, **kwargs):
         super().__init__(master, **kwargs)
 
@@ -16,7 +16,7 @@ class AnalysisPage(ctk.CTkScrollableFrame):
 
         self.canvas = None
 
-        self.dataframe = self.db.get_joined()
+        self.dataframe = self.db.get_joined(sort_on='Date')
 
         self.searched_dataframe = self.dataframe.copy()
 

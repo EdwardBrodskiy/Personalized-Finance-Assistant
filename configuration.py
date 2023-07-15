@@ -20,6 +20,21 @@ def get_transaction_formats():
     return try_get_config('transaction_formats.json')
 
 
+def get_best_default(source, column):
+    defaults = get_transaction_formats()['input defaults']
+    # full match with source
+    if source in defaults and column in defaults[source]:
+        return defaults[source][column]
+    # partial match with source e.g. NatWest
+    general_source_type = source.split()[0]
+    if general_source_type in defaults and column in defaults[general_source_type]:
+        return defaults[general_source_type][column]
+    # Global setting
+    if 'master' in defaults and column in defaults['master']:
+        return defaults['master'][column]
+    return None
+
+
 def try_get_config(filename):
     try:
         with open(os.path.join('config', filename)) as file:
