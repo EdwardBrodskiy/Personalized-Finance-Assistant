@@ -17,7 +17,7 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
 
         # Entry
 
-        self.row_entry = RowEntry(self, on_enter=self.data_entered, on_back=self.go_back)
+        self.row_entry = RowEntry(self, on_enter=self.data_entered)
         self.row_entry.pack(fill='both', expand=True)
 
         # Reference

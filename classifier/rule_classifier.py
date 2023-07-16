@@ -151,31 +151,7 @@ class Classifier:
         new_data = pd.DataFrame(data, columns=self.labeled_data.columns)
         new_data = new_data.astype(merged_types)
 
-        ref = new_data.loc[0, 'ref']
-        if ref in self.labeled_data['ref'].values:
-            match = self.labeled_data['ref'] == ref
-            existing_indices = self.labeled_data[match].index
-            for i in range(max(len(existing_indices), len(new_data))):
-                try:
-                    existing_index = existing_indices[i]
-                except IndexError:
-                    existing_index = -1
-                # If new edit has reduced rows, remove delete previous rows
-                try:
-                    new_data_row = new_data.iloc[i]
-                except IndexError:
-                    self.labeled_data.drop(existing_index, inplace=True)
-                    continue
-                # If new edit has more rows, add row
-                if existing_index == -1:
-                    df = pd.DataFrame([new_data_row])
-                    self.labeled_data = pd.concat([self.labeled_data, df], ignore_index=True)
-                    continue
-                # Edit row
-                self.labeled_data.loc[existing_index] = new_data_row
-
-        else:
-            self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
+        self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
 
         display_files_path = get_filepaths()['display_files']
         if not os.path.exists(display_files_path):

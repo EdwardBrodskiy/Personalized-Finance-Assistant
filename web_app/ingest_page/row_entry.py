@@ -8,11 +8,10 @@ from web_app.popups.error_popup import ErrorPopup
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, on_enter=None, on_back=None, **kwargs):
+    def __init__(self, master, on_enter=None,  **kwargs):
         super().__init__(master, **kwargs)
         self.configure(height=150)
         self.on_enter = on_enter
-        self.on_back = on_back
 
         self.fields = None
         self.controls = None
@@ -61,11 +60,6 @@ class RowEntry(customtkinter.CTkFrame):
         self.controls.grid(row=self.row_index + 1, sticky='we', column=0, columnspan=len(self.fields))
         self.controls.columnconfigure(0, weight=1)
 
-        back = customtkinter.CTkButton(self.controls, text="back", command=self.back, fg_color="transparent",
-                                       border_width=2,
-                                       text_color=("gray10", "#DCE4EE"))
-        back.grid(row=0, column=0, sticky='e')
-
         skip = customtkinter.CTkButton(self.controls, text='skip', command=self.skip, fg_color="transparent",
                                        border_width=2,
                                        text_color=("gray10", "#DCE4EE"))
@@ -91,41 +85,18 @@ class RowEntry(customtkinter.CTkFrame):
 
         self.clear_entry()
 
-        incoming_rows = len(user_entries)
         ref = user_entries[0]['ref']
-        if ref in self.rows:
-            label_rows = self.rows[ref]['label_rows']
-            existing_ref_rows = len(label_rows)
-            for i in range(max((existing_ref_rows, incoming_rows))):
-                if i > incoming_rows-1:
-                    label_row = label_rows[i]
-                    for label in label_row:
-                        label.destroy()
-                    del label_rows[i]
-                    continue
 
-                if i > existing_ref_rows-1:
-                    row = user_entries[i]
-                    container = self.rows[ref]['container']
-                    label_rows.append(self._draw_label_row(container, row, i))
-                    continue
-
-                label_row = label_rows[i]
-                row = user_entries[i]
-                for column, (key, value) in enumerate(row.items()):
-                    label_row[column].configure(text=value)
-
-        else:
-            self.rows[ref] = {
-                    'label_rows': [],
-                    'container': customtkinter.CTkFrame(self)
-                    }
-            container = self.rows[ref]['container']
-            self._container_config(container)
-            container.grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky="ew", pady=5)
-            for i, row in enumerate(user_entries):
-                self.rows[ref]['label_rows'].append(self._draw_label_row(container, row, i))
-                self.row_index += 1
+        self.rows[ref] = {
+                'label_rows': [],
+                'container': customtkinter.CTkFrame(self)
+                }
+        container = self.rows[ref]['container']
+        self._container_config(container)
+        container.grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky="ew", pady=5)
+        for i, row in enumerate(user_entries):
+            self.rows[ref]['label_rows'].append(self._draw_label_row(container, row, i))
+            self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
