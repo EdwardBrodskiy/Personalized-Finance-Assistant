@@ -26,7 +26,7 @@ class DataFrameWidget(customtkinter.CTkFrame):
         self.columnconfigure(list(range(len(dataframe.columns))), weight=1)
         self.rowconfigure(list(range(len(dataframe))), weight=1)
 
-    def scroll(self, offset):
+    def try_scroll(self, offset):
         if offset == 0:
             return False
         # Update row_of_interest and start_row, end_row
