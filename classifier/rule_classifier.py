@@ -148,11 +148,9 @@ class Classifier:
         return user_inputs
 
     def process_incoming_input(self, data):
-        new_data = pd.DataFrame(data, columns=self.labeled_data.columns)
+        new_data = pd.DataFrame(data)
         new_data = new_data.astype(merged_types)
-
         self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
-
         display_files_path = get_filepaths()['display_files']
         if not os.path.exists(display_files_path):
             os.makedirs(display_files_path)

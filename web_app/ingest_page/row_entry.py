@@ -8,7 +8,7 @@ from web_app.popups.error_popup import ErrorPopup
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, on_enter=None,  **kwargs):
+    def __init__(self, master, on_enter=None, **kwargs):
         super().__init__(master, **kwargs)
         self.configure(height=150)
         self.on_enter = on_enter
