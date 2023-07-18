@@ -87,16 +87,11 @@ class RowEntry(customtkinter.CTkFrame):
 
         ref = user_entries[0]['ref']
 
-        self.rows[ref] = {
-                'label_rows': [],
-                'container': customtkinter.CTkFrame(self)
-                }
-        container = self.rows[ref]['container']
-        self._container_config(container)
-        container.grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky="ew", pady=5)
-        for i, row in enumerate(user_entries):
-            self.rows[ref]['label_rows'].append(self._draw_label_row(container, row, i))
-            self.row_index += 1
+        self.rows[ref] = EntryFrame(self, fields=self.fields, uniform='col')
+        self.rows[ref].grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky='ew', pady=5)
+        self.rows[ref].draw(user_entries)
+
+        self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
@@ -123,3 +118,27 @@ class RowEntry(customtkinter.CTkFrame):
         self.clear_entry()
         if self.on_back is not None:
             self.on_back()
+
+
+class EntryFrame(customtkinter.CTkFrame):
+    def __init__(self, master, fields=None, uniform=None, **kwargs):
+        super().__init__(master, **kwargs)
+
+        self.label_rows = []
+
+        if fields is None:
+            return
+
+        self.grid_columnconfigure(list(range(len(fields))), weight=1, uniform=uniform)
+        self.grid_columnconfigure(list(fields.keys()).index('Description'), weight=5, uniform=uniform)
+        self.grid_columnconfigure(list(fields.keys()).index('Tags'), weight=5, uniform=uniform)
+
+    def draw(self, user_entries):
+        for grid_row, row in enumerate(user_entries):
+            label_row = []
+            for grid_column, (key, value) in enumerate(row.items()):
+                label = customtkinter.CTkLabel(self, text=value)
+                label.grid(row=grid_row, column=grid_column, sticky='w', padx=5, pady=1)
+                label_row.append(label)
+
+            self.label_rows.append(label_row)
