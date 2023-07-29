@@ -36,7 +36,8 @@ def get_items_from_input():
             if expected_type == 'datetime64[ns]'
         ]
         for dated_column in dated_columns:
-            incoming_rows[dated_column] = pd.to_datetime(incoming_rows[dated_column], dayfirst=is_day_first)
+            incoming_rows[dated_column] = pd.to_datetime(incoming_rows[dated_column], dayfirst=is_day_first,
+                                                         format='mixed')
 
         if sort_key is not None and sort_key in incoming_rows.columns:
             incoming_rows = incoming_rows.sort_values(by=sort_key)
