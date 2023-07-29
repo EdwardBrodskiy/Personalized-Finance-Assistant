@@ -15,6 +15,7 @@ class RowEntry(customtkinter.CTkFrame):
 
         self.fields = None
         self.controls = None
+        self.rows = {}
         self.row_index = 1
         self.first_table_draw = True
         self.part_labeled_row = None
@@ -43,9 +44,7 @@ class RowEntry(customtkinter.CTkFrame):
             field.grid(row=self.row_index, column=i, sticky='nsew', padx=(0, 5), pady=5)
 
         if self.first_table_draw:
-            self.grid_columnconfigure(list(range(len(self.fields))), weight=1)
-            self.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=10)
-            self.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=5)
+            self._container_config(self)
         self.first_table_draw = False
         self.fields[list(self.fields.keys())[-1]].bind("<Tab>", lambda event: self.submit())
 
@@ -64,10 +63,10 @@ class RowEntry(customtkinter.CTkFrame):
         skip = customtkinter.CTkButton(self.controls, text='skip', command=self.skip, fg_color="transparent",
                                        border_width=2,
                                        text_color=("gray10", "#DCE4EE"))
-        skip.grid(row=0, column=0, sticky='e')
+        skip.grid(row=0, column=1, sticky='e')
 
         add = customtkinter.CTkButton(self.controls, text='submit', command=self.submit)
-        add.grid(row=0, column=1, sticky='e')
+        add.grid(row=0, column=2, sticky='e')
 
     def clear_entry(self):
         for field in self.fields.values():
@@ -86,16 +85,60 @@ class RowEntry(customtkinter.CTkFrame):
 
         self.clear_entry()
 
-        for row in user_entries:
-            for i, (key, value) in enumerate(row.items()):
-                label = customtkinter.CTkLabel(self, text=value)
-                label.grid(row=self.row_index, column=i, sticky='w', padx=(0, 5), pady=1)
-            self.row_index += 1
+        ref = user_entries[0]['ref']
+
+        self.rows[ref] = EntryFrame(self, fields=self.fields, uniform='col')
+        self.rows[ref].grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky='ew', pady=5)
+        self.rows[ref].draw(user_entries)
+
+        self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
+
+    def _draw_label_row(self, parent, row, grid_row):
+        label_row = []
+        for column, (key, value) in enumerate(row.items()):
+            label = customtkinter.CTkLabel(parent, text=value)
+            label.grid(row=grid_row, column=column, sticky='w', padx=5, pady=1)
+            label_row.append(label)
+        return label_row
+
+    def _container_config(self, container):
+        container.grid_columnconfigure(list(range(len(self.fields))), weight=1, uniform='col')
+        container.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=5, uniform='col')
+        container.grid_columnconfigure(list(self.fields.keys()).index('Tags'), weight=5, uniform='col')
 
     def skip(self):
         self.clear_entry()
         if self.on_enter is not None:
             self.on_enter(None)
+
+    def back(self):
+        self.clear_entry()
+        if self.on_back is not None:
+            self.on_back()
+
+
+class EntryFrame(customtkinter.CTkFrame):
+    def __init__(self, master, fields=None, uniform=None, **kwargs):
+        super().__init__(master, **kwargs)
+
+        self.label_rows = []
+
+        if fields is None:
+            return
+
+        self.grid_columnconfigure(list(range(len(fields))), weight=1, uniform=uniform)
+        self.grid_columnconfigure(list(fields.keys()).index('Description'), weight=5, uniform=uniform)
+        self.grid_columnconfigure(list(fields.keys()).index('Tags'), weight=5, uniform=uniform)
+
+    def draw(self, user_entries):
+        for grid_row, row in enumerate(user_entries):
+            label_row = []
+            for grid_column, (key, value) in enumerate(row.items()):
+                label = customtkinter.CTkLabel(self, text=value)
+                label.grid(row=grid_row, column=grid_column, sticky='w', padx=5, pady=1)
+                label_row.append(label)
+
+            self.label_rows.append(label_row)

@@ -119,6 +119,8 @@ class Classifier:
         if any(map(lambda x: '|' in x, string_entries)) or len(split_tags) > 1:
             string_entries = list(map(lambda x: x.split('|'), string_entries))
             string_entries = [list(map(lambda y: y[key] if len(y) == 2 else y[0], string_entries)) for key in range(2)]
+            if len(split_tags) == 1:  # if only single tag group split out to both entries
+                split_tags = split_tags + split_tags
         else:
             string_entries = [string_entries]
 
@@ -126,7 +128,7 @@ class Classifier:
             'ref': ref,
             'Description': str_entries[0] if string_entries is not None else None,
             'Amount': str_entries[1] if string_entries is not None else None,
-            'Tags': tag
+            'Tags': tag if tag is not None else ()
         } for str_entries, tag in zip_longest(string_entries, split_tags)]
 
         try:
@@ -149,7 +151,7 @@ class Classifier:
 
     def process_incoming_input(self, data):
         new_data = pd.DataFrame(data)
-        new_data.astype(merged_types)
+        new_data = new_data.astype(merged_types)
         self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
         display_files_path = get_filepaths()['display_files']
         if not os.path.exists(display_files_path):
