@@ -47,7 +47,9 @@ class IngestPage(customtkinter.CTkFrame):
             if len(self.classifier.un_labeled): # if there is something to manually label
                 self.lb_classifier_result.configure(
                     text=f'Classification in progress please enter the required manual information. '
-                         f'{len(self.classifier.automatically_labeled)} classified automatically')
+                         f'{len(self.classifier.automatically_labeled)} classified automatically '
+                         f'and {len(self.classifier.un_labeled)} up for manual classification'
+                )
                 self.bt_run_classifier.configure(text='Finish and save')
 
                 self.ingest_process = IngestProcess(self, self.classifier, height=2000)

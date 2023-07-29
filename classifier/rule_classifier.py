@@ -84,9 +84,13 @@ class Classifier:
     def get_entry_prerequisites_for_manual_entry(self, index):
         row = self.un_labeled.iloc[index]
         row = pd.DataFrame(row).T.reset_index()
-        # extract tags in common order in the relative scope of manual labeling
+
+        # Prioritize non automatic tags
         non_automatically_labeled_tags = self.merged['Tags'][self.merged['Tags'].apply(lambda x: 'Automatic' not in x)]
-        tags = extract_tags(non_automatically_labeled_tags)
+        automatically_labeled_tags = self.merged['Tags'][self.merged['Tags'].apply(lambda x: 'Automatic' in x)]
+        non_automatic_tags = extract_tags(non_automatically_labeled_tags)
+        automatic_tags = extract_tags(automatically_labeled_tags)
+        tags = non_automatic_tags + automatic_tags
         return row, {'Tags': tags}
 
     @staticmethod

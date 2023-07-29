@@ -92,7 +92,8 @@ class AutoSuggestTagEntry(ctk.CTkFrame):
         self.tags[tag].destroy()
         self.tags[tag] = None
         self.entry.suggestions = self._get_unselected_suggestions()
-        self._on_change()
+        if self._on_change is not None:
+            self._on_change()
 
     def _get_unselected_suggestions(self):
         return list(map(lambda kv: kv[0], filter(lambda kv: kv[1] is None, self.tags.items())))
