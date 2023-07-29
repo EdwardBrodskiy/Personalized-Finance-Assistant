@@ -57,14 +57,19 @@ class IngestPage(customtkinter.CTkFrame):
                                    f'{len(self.classifier.automatically_labeled)} were labeled automatically')
         else:
             self.ingest_process_active = False
+
+            # Reset the UI
             if self.ingest_process is not None:
                 self.ingest_process.pack_forget()
             self.ingest_label.pack(side='top')
             self.lb_classifier_result.configure(
                 text=f'{len(self.classifier.automatically_labeled)} automatic entries saved and {len(self.classifier.labeled_data)} manual entries saved')
+            self.bt_run_classifier.configure(text='Run classifier')
 
+            # save and reset classifier
             self.db.add_to_merged(self.classifier.automatically_labeled)
             self.db.add_to_merged(self.classifier.labeled_data)
+            self.classifier = Classifier(self.db)
 
     def run_indexer(self):
         new = index_input_data(self.db)
