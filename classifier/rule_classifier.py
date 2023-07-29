@@ -119,6 +119,8 @@ class Classifier:
         if any(map(lambda x: '|' in x, string_entries)) or len(split_tags) > 1:
             string_entries = list(map(lambda x: x.split('|'), string_entries))
             string_entries = [list(map(lambda y: y[key] if len(y) == 2 else y[0], string_entries)) for key in range(2)]
+            if len(split_tags) == 1:  # if only single tag group split out to both entries
+                split_tags = split_tags + split_tags
         else:
             string_entries = [string_entries]
 
