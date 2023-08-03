@@ -82,6 +82,7 @@ class Classifier:
         return data
 
     def get_entry_prerequisites_for_manual_entry(self, index):
+        index = max(0, min(len(self.un_labeled)-1, index))  # clamp index
         row = self.un_labeled.iloc[index]
         row = pd.DataFrame(row).T.reset_index()
 

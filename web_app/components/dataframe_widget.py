@@ -14,7 +14,7 @@ class DataFrameWidget(customtkinter.CTkFrame):
         self.number_of_neighbors = number_of_neighbors
 
         self.start_row = max(0, row_of_interest - number_of_neighbors)
-        self.end_row = min(len(dataframe), row_of_interest + number_of_neighbors)
+        self.end_row = min(len(dataframe)-1, row_of_interest + number_of_neighbors)
 
         for column, column_name in enumerate(dataframe.columns):
             header_label = customtkinter.CTkLabel(self, text=column_name, fg_color='gray18')
