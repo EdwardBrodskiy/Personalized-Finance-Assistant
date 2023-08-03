@@ -37,24 +37,16 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
         if data is not None:
             self.classifier.process_incoming_input(data)
 
-        if self.reference_table.try_scroll(1):
-            self.interest_row += 1
-            self.last_entry_row = self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row)
-            self.row_entry.add_entry_row_at(*self.last_entry_row)
-        else:
-            self.row_entry.add_entry_row_at(*self.last_entry_row)
-
-        # move scroll to the end
-        self.update_idletasks()
-        self._parent_canvas.yview_moveto(1)
+        self._scroll(1)
 
     def go_back(self):
-        if self.reference_table.try_scroll(-1):
-            self.interest_row -= 1
+        self._scroll(-1)
+
+    def _scroll(self, x):
+        if self.reference_table.try_scroll(x):
+            self.interest_row += x
             self.last_entry_row = self.classifier.get_entry_prerequisites_for_manual_entry(self.interest_row)
-            self.row_entry.add_entry_row_at(*self.last_entry_row)
-        else:
-            self.row_entry.add_entry_row_at(*self.last_entry_row)
+        self.row_entry.add_entry_row_at(*self.last_entry_row)
 
         # move scroll to the end
         self.update_idletasks()
