@@ -41,7 +41,6 @@ def get_items_from_input():
 
         if sort_key is not None and sort_key in incoming_rows.columns:
             incoming_rows = incoming_rows.sort_values(by=sort_key)
-        print(incoming_rows)
 
         for column in incoming_rows.columns:
             default_value = get_best_default(source, column)
