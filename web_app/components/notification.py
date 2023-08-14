@@ -3,7 +3,6 @@ import customtkinter as ctk
 from web_app.theme_colors import colors
 
 
-# TODO : would be nice to add a feature of  don't add new notification if an identical one is already shown
 class Notification(ctk.CTkFrame):
     notifications = []
 
@@ -13,9 +12,12 @@ class Notification(ctk.CTkFrame):
         self.message = message
         self.count = 1
         self.timeout = timeout
-        self.twin = self.check_for_identical()
-        if self.twin is not None:
-            Notification.notifications[self.twin].increase_count()
+
+        self.identical_index = self.get_identical_index()
+        if self.identical_index is not None:
+            first_notification = Notification.notifications[self.identical_index]
+            first_notification.increase_count()
+            self.selected_spot = first_notification.selected_spot
             return
 
         # if first of its kind find and take spot
@@ -30,6 +32,7 @@ class Notification(ctk.CTkFrame):
         self.close = ctk.CTkButton(self, text='X', command=self.destroy, width=25)
         self.close.pack(side='left', padx=(0, 8), pady=8)
         self.death = self.after(self.timeout, self.destroy)
+
     def increase_count(self):
         self.count += 1
         self.label.configure(text=f'{self.message} x{self.count}')
@@ -40,7 +43,7 @@ class Notification(ctk.CTkFrame):
         Notification.notifications[self.selected_spot] = False  # free spot
         super().destroy()
 
-    def check_for_identical(self):
+    def get_identical_index(self):
         for index, notification in enumerate(Notification.notifications):
             if type(notification) is Notification and self.message == notification.message:
                 return index
