@@ -8,7 +8,7 @@ import shutil
 from os.path import join
 
 from web_app.components.notification import Notification
-from web_app.popups.warninig_popup import WarningPopup
+from web_app.popups.warning_popup import WarningPopup
 
 
 class DBManagerPage(customtkinter.CTkFrame):

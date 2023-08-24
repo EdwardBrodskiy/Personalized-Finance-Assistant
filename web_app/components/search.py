@@ -7,7 +7,7 @@ import pandas as pd
 import web_app.components.filters as filters
 from helper_functions import ensure_dir_exists
 from web_app.components.notification import Notification
-from web_app.popups.warninig_popup import WarningPopup
+from web_app.popups.warning_popup import WarningPopup
 
 
 class Search(ctk.CTkFrame):
