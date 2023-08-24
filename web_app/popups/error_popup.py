@@ -9,6 +9,7 @@ class ErrorPopup(customtkinter.CTkToplevel):
         self.lift()  # lift window on top
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
         self.attributes("-topmost", True)  # stay on top
+        self.attributes("-type", "dialog")
         self.resizable(False, False)
         self.grab_set()  # make other windows not clickable
 
