@@ -96,14 +96,6 @@ class RowEntry(customtkinter.CTkFrame):
         if self.on_enter is not None:
             self.on_enter(user_entries)
 
-    def _draw_label_row(self, parent, row, grid_row):
-        label_row = []
-        for column, (key, value) in enumerate(row.items()):
-            label = customtkinter.CTkLabel(parent, text=value)
-            label.grid(row=grid_row, column=column, sticky='w', padx=5, pady=1)
-            label_row.append(label)
-        return label_row
-
     def _container_config(self, container):
         container.grid_columnconfigure(list(range(len(self.fields))), weight=1, uniform='col')
         container.grid_columnconfigure(list(self.fields.keys()).index('Description'), weight=5, uniform='col')
@@ -133,12 +125,40 @@ class EntryFrame(customtkinter.CTkFrame):
         self.grid_columnconfigure(list(fields.keys()).index('Description'), weight=5, uniform=uniform)
         self.grid_columnconfigure(list(fields.keys()).index('Tags'), weight=5, uniform=uniform)
 
+        self.edit_button = customtkinter.CTkButton(self, text="Edit", command=self.edit)
+        self.bind("<Enter>", self.show_edit_button)
+        self.bind("<Leave>", self.start_button_timer)
+        self.edit_button.bind("<Enter>", self.stop_button_timer)
+        self.edit_button.bind("<Leave>", self.start_button_timer)
+
+        self.button_timeout = 0
+        self.hide = None
+
     def draw(self, user_entries):
         for grid_row, row in enumerate(user_entries):
             label_row = []
             for grid_column, (key, value) in enumerate(row.items()):
                 label = customtkinter.CTkLabel(self, text=value)
-                label.grid(row=grid_row, column=grid_column, sticky='w', padx=5, pady=1)
+                label.grid(row=grid_row, column=grid_column, sticky='w', padx=5)
+
                 label_row.append(label)
 
             self.label_rows.append(label_row)
+
+    def edit(self):
+        pass
+
+    def show_edit_button(self, event):
+        self.edit_button.place(relx=0.997, rely=0.5, relwidth=0.1, relheight=0.8, anchor='e')
+        self.stop_button_timer(event)
+
+    def hide_edit_button(self, event):
+        self.edit_button.place_forget()
+
+    def start_button_timer(self, event):
+        self.stop_button_timer(event)
+        self.hide = self.after(self.button_timeout, lambda: self.hide_edit_button(event))
+
+    def stop_button_timer(self, event):
+        if self.hide is not None:
+            self.after_cancel(self.hide)
