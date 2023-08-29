@@ -5,13 +5,15 @@ import customtkinter
 from classifier.rule_classifier import Classifier
 from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
 from web_app.popups.error_popup import ErrorPopup
+from web_app.popups.edit_popup import EditPopup
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, on_enter=None, **kwargs):
+    def __init__(self, master, on_enter=None, on_edit=None, **kwargs):
         super().__init__(master, **kwargs)
         self.configure(height=150)
         self.on_enter = on_enter
+        self.on_edit = on_edit
 
         self.fields = None
         self.controls = None
@@ -87,14 +89,20 @@ class RowEntry(customtkinter.CTkFrame):
 
         ref = user_entries[0]['ref']
 
-        self.rows[ref] = EntryFrame(self, fields=self.fields, uniform='col')
+        self.rows[ref] = EntryFrame(self, user_entries=user_entries, uniform='col',
+                                    on_edit=lambda: self._edit_event(ref, user_entries))
         self.rows[ref].grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky='ew', pady=5)
-        self.rows[ref].draw(user_entries)
+        self.rows[ref].draw()
 
         self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
+
+    def _edit_event(self, ref, user_entries):
+        self.rows[ref].draw()
+        if self.on_edit is not None:
+            self.on_edit(user_entries)
 
     def _container_config(self, container):
         container.grid_columnconfigure(list(range(len(self.fields))), weight=1, uniform='col')
@@ -113,19 +121,22 @@ class RowEntry(customtkinter.CTkFrame):
 
 
 class EntryFrame(customtkinter.CTkFrame):
-    def __init__(self, master, fields=None, uniform=None, **kwargs):
+    def __init__(self, master, user_entries=None, uniform=None, on_edit=None, **kwargs):
         super().__init__(master, **kwargs)
 
         self.label_rows = []
 
-        if fields is None:
+        if user_entries is None:
             return
 
-        self.grid_columnconfigure(list(range(len(fields))), weight=1, uniform=uniform)
-        self.grid_columnconfigure(list(fields.keys()).index('Description'), weight=5, uniform=uniform)
-        self.grid_columnconfigure(list(fields.keys()).index('Tags'), weight=5, uniform=uniform)
+        self.user_entries = user_entries
+        self.on_edit = on_edit
 
-        self.edit_button = customtkinter.CTkButton(self, text="Edit", command=self.edit)
+        self.grid_columnconfigure(list(range(len(user_entries[0]))), weight=1, uniform=uniform)
+        self.grid_columnconfigure(list(user_entries[0].keys()).index('Description'), weight=5, uniform=uniform)
+        self.grid_columnconfigure(list(user_entries[0].keys()).index('Tags'), weight=5, uniform=uniform)
+
+        self.edit_button = customtkinter.CTkButton(self, text="Edit", command=self.show_edit)
         self.bind("<Enter>", self.show_edit_button)
         self.bind("<Leave>", self.start_button_timer)
         self.edit_button.bind("<Enter>", self.stop_button_timer)
@@ -134,8 +145,13 @@ class EntryFrame(customtkinter.CTkFrame):
         self.button_timeout = 0
         self.hide = None
 
-    def draw(self, user_entries):
-        for grid_row, row in enumerate(user_entries):
+    def draw(self):
+        for row in self.label_rows:
+            for label in row:
+                label.destroy()
+        self.label_rows = []
+
+        for grid_row, row in enumerate(self.user_entries):
             label_row = []
             for grid_column, (key, value) in enumerate(row.items()):
                 label = customtkinter.CTkLabel(self, text=value)
@@ -145,8 +161,12 @@ class EntryFrame(customtkinter.CTkFrame):
 
             self.label_rows.append(label_row)
 
-    def edit(self):
-        pass
+    def show_edit(self):
+        EditPopup(self, edit_vars=self.user_entries, on_edit=self._edit_event, read_only_keys=("ref"))
+
+    def _edit_event(self):
+        if self.on_edit is not None:
+            self.on_edit()
 
     def show_edit_button(self, event):
         self.edit_button.place(relx=0.997, rely=0.5, relwidth=0.1, relheight=0.8, anchor='e')
