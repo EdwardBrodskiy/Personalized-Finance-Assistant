@@ -9,9 +9,10 @@ from web_app.popups.edit_popup import EditPopup
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, on_enter=None, on_edit=None, **kwargs):
+    def __init__(self, master, on_back=None, on_enter=None, on_edit=None, **kwargs):
         super().__init__(master, **kwargs)
         self.configure(height=150)
+        self.on_back = on_back
         self.on_enter = on_enter
         self.on_edit = on_edit
 
@@ -62,13 +63,18 @@ class RowEntry(customtkinter.CTkFrame):
         self.controls.grid(row=self.row_index + 1, sticky='we', column=0, columnspan=len(self.fields))
         self.controls.columnconfigure(0, weight=1)
 
+        back = customtkinter.CTkButton(self.controls, text='back', command=self.back, fg_color="transparent",
+                                       border_width=2,
+                                       text_color=("gray10", "#DCE4EE"))
+        back.grid(row=0, column=1, sticky='e')
+
         skip = customtkinter.CTkButton(self.controls, text='skip', command=self.skip, fg_color="transparent",
                                        border_width=2,
                                        text_color=("gray10", "#DCE4EE"))
-        skip.grid(row=0, column=1, sticky='e')
+        skip.grid(row=0, column=2, sticky='e')
 
         add = customtkinter.CTkButton(self.controls, text='submit', command=self.submit)
-        add.grid(row=0, column=2, sticky='e')
+        add.grid(row=0, column=3, sticky='e')
 
     def clear_entry(self):
         for field in self.fields.values():

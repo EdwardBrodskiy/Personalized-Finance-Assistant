@@ -162,3 +162,6 @@ class Classifier:
         if not os.path.exists(display_files_path):
             os.makedirs(display_files_path)
         self.labeled_data.to_csv(os.path.join(display_files_path, 'user_labeled_backup.csv'))
+
+    def edit_incoming_input(self, data):
+        pass
