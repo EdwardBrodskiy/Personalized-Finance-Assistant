@@ -157,11 +157,40 @@ class Classifier:
     def process_incoming_input(self, data):
         new_data = pd.DataFrame(data)
         new_data = new_data.astype(merged_types)
-        self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
-        display_files_path = get_filepaths()['display_files']
-        if not os.path.exists(display_files_path):
-            os.makedirs(display_files_path)
-        self.labeled_data.to_csv(os.path.join(display_files_path, 'user_labeled_backup.csv'))
 
-    def edit_incoming_input(self, data):
-        pass
+        ref = new_data.loc[0, 'ref']
+        if ref in self.labeled_data['ref'].values:
+            self.recreate_with_incoming_input(data)
+        else:
+            self.labeled_data = pd.concat([self.labeled_data, new_data], ignore_index=True)
+            display_files_path = get_filepaths()['display_files']
+            if not os.path.exists(display_files_path):
+                os.makedirs(display_files_path)
+            self.labeled_data.to_csv(os.path.join(display_files_path, 'user_labeled_backup.csv'))
+
+    def edit_with_incoming_input(self, data):
+        new_data = pd.DataFrame(data, columns=self.labeled_data.columns)
+        new_data = new_data.astype(merged_types)
+
+        ref = new_data.loc[0, 'ref']
+        if ref not in self.labeled_data['ref'].values:
+            return
+
+        for i in range(len(new_data)):
+            self.labeled_data.loc[i] = new_data.iloc[i]
+
+    def recreate_with_incoming_input(self, data):
+        new_data = pd.DataFrame(data)
+        new_data = new_data.astype(merged_types)
+
+        ref = new_data.loc[0, 'ref']
+        if ref not in self.labeled_data['ref'].values:
+            return
+
+        match = self.labeled_data['ref'] == ref
+        existing_indices = self.labeled_data[match].index
+
+        for i in range(len(existing_indices)):
+            self.labeled_data.drop(existing_indices[i], inplace=True)
+
+        self.process_incoming_input(data)

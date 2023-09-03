@@ -95,6 +95,9 @@ class RowEntry(customtkinter.CTkFrame):
 
         ref = user_entries[0]['ref']
 
+        if ref in self.rows.keys():
+            self.rows[ref].destroy()
+
         self.rows[ref] = EntryFrame(self, user_entries=user_entries, uniform='col',
                                     on_edit=lambda: self._edit_event(ref, user_entries))
         self.rows[ref].grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky='ew', pady=5)
@@ -170,10 +173,6 @@ class EntryFrame(customtkinter.CTkFrame):
     def show_edit(self):
         EditPopup(self, edit_vars=self.user_entries, on_edit=self._edit_event, read_only_keys=("ref"))
 
-    def _edit_event(self):
-        if self.on_edit is not None:
-            self.on_edit()
-
     def show_edit_button(self, event):
         self.edit_button.place(relx=0.997, rely=0.5, relwidth=0.1, relheight=0.8, anchor='e')
         self.stop_button_timer(event)
@@ -188,3 +187,7 @@ class EntryFrame(customtkinter.CTkFrame):
     def stop_button_timer(self, event):
         if self.hide is not None:
             self.after_cancel(self.hide)
+
+    def _edit_event(self):
+        if self.on_edit is not None:
+            self.on_edit()

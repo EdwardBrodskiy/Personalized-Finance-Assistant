@@ -41,7 +41,7 @@ class IngestProcess(customtkinter.CTkScrollableFrame):
 
     def data_edited(self, data):
         if data is not None:
-            self.classifier.edit_incoming_input(data)
+            self.classifier.edit_with_incoming_input(data)
 
     def go_back(self):
         self._scroll(-1)
