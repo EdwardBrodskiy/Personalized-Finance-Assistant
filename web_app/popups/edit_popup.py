@@ -2,7 +2,16 @@ import customtkinter
 
 
 class EditPopup(customtkinter.CTkToplevel):
-    def __init__(self, master, edit_vars=None, read_only_keys=(), on_edit=None, **kwargs):
+    # entry is read only
+    READ_ONLY = 0
+    # function that creates a custom entry widget
+    CUSTOM_ENTRY = 1
+    # kwargs for .get() function for the entry
+    GET_KWARGS = 2
+    # if value of edit output is of an array type, _create_edit_fields() won't recurse
+    ARRAY_OUTPUT = 3
+
+    def __init__(self, master, edit_vars=None, key_opts={}, on_edit=None, **kwargs):
         if edit_vars is None:
             return
         super().__init__(master, **kwargs)
@@ -21,9 +30,8 @@ class EditPopup(customtkinter.CTkToplevel):
         self.edit_fields_container = customtkinter.CTkFrame(self, fg_color="transparent")
         self.edit_fields_container.grid(row=0, columnspan=2)
         self.edit_widgets = {}
-        self.read_only_keys = read_only_keys
+        self.key_opts = key_opts
         self._create_edit_fields(self.edit_vars, self.edit_widgets, self.edit_fields_container)
-
 
         self.on_edit = on_edit
 
@@ -47,7 +55,11 @@ class EditPopup(customtkinter.CTkToplevel):
             if type(val) is dict:
                 self._update_edit_vars(edit_vars[key], val)
                 continue
-            edit_vars[key] = val.get()
+
+            kwargs = self._get_key_opt(key, EditPopup.GET_KWARGS)
+            if kwargs is None:
+                kwargs = {}
+            edit_vars[key] = val.get(**kwargs)
 
     def _on_closing(self):
         self.grab_release()
@@ -70,7 +82,8 @@ class EditPopup(customtkinter.CTkToplevel):
             if is_list:
                 key_string = ""
 
-            if type(val) in (list, dict):
+            array_output = self._get_key_opt(key, EditPopup.ARRAY_OUTPUT)
+            if type(val) in (list, dict) and array_output is None:
                 if not is_list:
                     key_string = f"{key_string}: "
 
@@ -82,20 +95,45 @@ class EditPopup(customtkinter.CTkToplevel):
 
                 self._create_edit_fields(val, edit_widgets[key], new_container)
                 continue
-            edit_widgets[key] = self._create_edit_field(container, row, key_string, val,
-                                                        read_only=key in self.read_only_keys)
 
-    def _create_edit_field(self, container, row, label, value=None, read_only=False):
+            read_only = self._get_key_opt(key, EditPopup.READ_ONLY)
+            if read_only is None:
+                read_only = False
+            entry_creation_func = self._get_key_opt(key, EditPopup.CUSTOM_ENTRY)
+
+            edit_widgets[key] = self._create_edit_field(container, row, key_string, val,
+                                                        read_only=read_only,
+                                                        create_entry=entry_creation_func)
+
+    def _create_edit_field(self, container, row, label, value=None, read_only=False, create_entry=None):
         entry_state = "disabled" if read_only else "normal"
 
         label = customtkinter.CTkLabel(container, text=label)
         label.grid(row=row, column=0)
-        entry = customtkinter.CTkEntry(container)
-        entry.grid(row=row, column=1)
+
+        if create_entry is None:
+            entry = customtkinter.CTkEntry(container)
+        else:
+            entry = create_entry(container)
+
         if value is not None:
             entry.insert(0, value)
-        entry.configure(state=entry_state)
+
+        try:
+            entry.configure(state=entry_state)
+        except ValueError:
+            pass
+
+        entry.grid(row=row, column=1)
         return entry
+
+    def _get_key_opt(self, key, opt):
+        if key not in self.key_opts.keys():
+            return None
+        if opt not in self.key_opts[key].keys():
+            return None
+
+        return self.key_opts[key][opt]
 
     def _get_window_center(self, tk_window):
         root = tk_window.winfo_toplevel()
