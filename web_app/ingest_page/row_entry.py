@@ -6,7 +6,8 @@ from classifier.rule_classifier import Classifier
 from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
 from web_app.popups.error_popup import ErrorPopup
 from web_app.popups.edit_popup import EditPopup
-
+from helper_functions import extract_tags
+from database import DataBase
 
 class RowEntry(customtkinter.CTkFrame):
     def __init__(self, master, on_back=None, on_enter=None, on_edit=None, **kwargs):
@@ -171,7 +172,15 @@ class EntryFrame(customtkinter.CTkFrame):
             self.label_rows.append(label_row)
 
     def show_edit(self):
-        EditPopup(self, edit_vars=self.user_entries, on_edit=self._edit_event, read_only_keys=("ref"))
+        key_opts = {
+                "ref": {EditPopup.READ_ONLY: True},
+                "Tags": {
+                    EditPopup.CUSTOM_ENTRY: self._create_AutoSuggestTagEntry,
+                    EditPopup.GET_KWARGS: {"key_only": True},
+                    EditPopup.ARRAY_OUTPUT: True,
+                    }
+                }
+        EditPopup(self, edit_vars=self.user_entries, on_edit=self._edit_event, key_opts=key_opts)
 
     def show_edit_button(self, event):
         self.edit_button.place(relx=0.997, rely=0.5, relwidth=0.1, relheight=0.8, anchor='e')
@@ -191,3 +200,17 @@ class EntryFrame(customtkinter.CTkFrame):
     def _edit_event(self):
         if self.on_edit is not None:
             self.on_edit()
+
+    # TODO: better solution than duplicating rule_classifier.py line 90
+    def _create_AutoSuggestTagEntry(self, container):
+        db = DataBase()
+        merged = db.get_merged()
+
+        non_automatically_labeled_tags = merged['Tags'][merged['Tags'].apply(lambda x: 'Automatic' not in x)]
+        automatically_labeled_tags = merged['Tags'][merged['Tags'].apply(lambda x: 'Automatic' in x)]
+        non_automatic_tags = extract_tags(non_automatically_labeled_tags)
+        automatic_tags = extract_tags(automatically_labeled_tags)
+        tags = non_automatic_tags + automatic_tags
+
+        return AutoSuggestTagEntry(container, suggestions=tags, tag_selection_options=('', ' - 1', ' - 2'),
+                                   banned_tags={'Automatic': 'Tag reserved for classifier'})
