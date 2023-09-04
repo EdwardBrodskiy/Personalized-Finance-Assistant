@@ -6,8 +6,7 @@ from classifier.rule_classifier import Classifier
 from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
 from web_app.popups.error_popup import ErrorPopup
 from web_app.popups.edit_popup import EditPopup
-from helper_functions import extract_tags
-from database import DataBase
+
 
 class RowEntry(customtkinter.CTkFrame):
     def __init__(self, master, on_back=None, on_enter=None, on_edit=None, **kwargs):
@@ -23,9 +22,11 @@ class RowEntry(customtkinter.CTkFrame):
         self.row_index = 1
         self.first_table_draw = True
         self.part_labeled_row = None
+        self.tag_suggestions = None
 
     def add_entry_row_at(self, part_labeled_row, suggestions):
         self.part_labeled_row = part_labeled_row
+        self.tag_suggestions = suggestions['Tags']
         self.fields = OrderedDict(
             (
                 ('ref', customtkinter.CTkLabel(self, anchor='w')),
@@ -100,6 +101,7 @@ class RowEntry(customtkinter.CTkFrame):
             self.rows[ref].destroy()
 
         self.rows[ref] = EntryFrame(self, user_entries=user_entries, uniform='col',
+                                    tag_suggestions=self.tag_suggestions,
                                     on_edit=lambda: self._edit_event(ref, user_entries))
         self.rows[ref].grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky='ew', pady=5)
         self.rows[ref].draw()
@@ -131,7 +133,7 @@ class RowEntry(customtkinter.CTkFrame):
 
 
 class EntryFrame(customtkinter.CTkFrame):
-    def __init__(self, master, user_entries=None, uniform=None, on_edit=None, **kwargs):
+    def __init__(self, master, user_entries=None, uniform=None, tag_suggestions=None, on_edit=None, **kwargs):
         super().__init__(master, **kwargs)
 
         self.label_rows = []
@@ -140,6 +142,7 @@ class EntryFrame(customtkinter.CTkFrame):
             return
 
         self.user_entries = user_entries
+        self.tag_suggestions = tag_suggestions
         self.on_edit = on_edit
 
         self.grid_columnconfigure(list(range(len(user_entries[0]))), weight=1, uniform=uniform)
@@ -201,16 +204,9 @@ class EntryFrame(customtkinter.CTkFrame):
         if self.on_edit is not None:
             self.on_edit()
 
-    # TODO: better solution than duplicating rule_classifier.py line 90
     def _create_AutoSuggestTagEntry(self, container):
-        db = DataBase()
-        merged = db.get_merged()
-
-        non_automatically_labeled_tags = merged['Tags'][merged['Tags'].apply(lambda x: 'Automatic' not in x)]
-        automatically_labeled_tags = merged['Tags'][merged['Tags'].apply(lambda x: 'Automatic' in x)]
-        non_automatic_tags = extract_tags(non_automatically_labeled_tags)
-        automatic_tags = extract_tags(automatically_labeled_tags)
-        tags = non_automatic_tags + automatic_tags
-
-        return AutoSuggestTagEntry(container, suggestions=tags, tag_selection_options=('', ' - 1', ' - 2'),
+        if self.tag_suggestions is None:
+            return None
+        return AutoSuggestTagEntry(container, suggestions=self.tag_suggestions,
+                                   tag_selection_options=('', ' - 1', ' - 2'),
                                    banned_tags={'Automatic': 'Tag reserved for classifier'})
