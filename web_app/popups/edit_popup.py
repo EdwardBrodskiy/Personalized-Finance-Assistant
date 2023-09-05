@@ -109,7 +109,7 @@ class EditPopup(customtkinter.CTkToplevel):
         entry_state = "disabled" if read_only else "normal"
 
         label = customtkinter.CTkLabel(container, text=label)
-        label.grid(row=row, column=0)
+        label.grid(row=row, column=0, sticky="w", padx=5)
 
         if create_entry is None:
             entry = customtkinter.CTkEntry(container)
@@ -124,7 +124,7 @@ class EditPopup(customtkinter.CTkToplevel):
         except ValueError:
             pass
 
-        entry.grid(row=row, column=1)
+        entry.grid(row=row, column=1, sticky="ew")
         return entry
 
     def _get_key_opt(self, key, opt):
