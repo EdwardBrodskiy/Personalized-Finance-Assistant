@@ -5,13 +5,16 @@ import customtkinter
 from classifier.rule_classifier import Classifier
 from web_app.components.auto_suggest_tag_entry import AutoSuggestTagEntry
 from web_app.popups.error_popup import ErrorPopup
+from web_app.popups.edit_popup import EditPopup
 
 
 class RowEntry(customtkinter.CTkFrame):
-    def __init__(self, master, on_enter=None, **kwargs):
+    def __init__(self, master, on_back=None, on_enter=None, on_edit=None, **kwargs):
         super().__init__(master, **kwargs)
         self.configure(height=150)
+        self.on_back = on_back
         self.on_enter = on_enter
+        self.on_edit = on_edit
 
         self.fields = None
         self.controls = None
@@ -19,9 +22,11 @@ class RowEntry(customtkinter.CTkFrame):
         self.row_index = 1
         self.first_table_draw = True
         self.part_labeled_row = None
+        self.tag_suggestions = None
 
     def add_entry_row_at(self, part_labeled_row, suggestions):
         self.part_labeled_row = part_labeled_row
+        self.tag_suggestions = suggestions['Tags']
         self.fields = OrderedDict(
             (
                 ('ref', customtkinter.CTkLabel(self, anchor='w')),
@@ -60,13 +65,18 @@ class RowEntry(customtkinter.CTkFrame):
         self.controls.grid(row=self.row_index + 1, sticky='we', column=0, columnspan=len(self.fields))
         self.controls.columnconfigure(0, weight=1)
 
+        back = customtkinter.CTkButton(self.controls, text='back', command=self.back, fg_color="transparent",
+                                       border_width=2,
+                                       text_color=("gray10", "#DCE4EE"))
+        back.grid(row=0, column=1, sticky='e')
+
         skip = customtkinter.CTkButton(self.controls, text='skip', command=self.skip, fg_color="transparent",
                                        border_width=2,
                                        text_color=("gray10", "#DCE4EE"))
-        skip.grid(row=0, column=1, sticky='e')
+        skip.grid(row=0, column=2, sticky='e')
 
         add = customtkinter.CTkButton(self.controls, text='submit', command=self.submit)
-        add.grid(row=0, column=2, sticky='e')
+        add.grid(row=0, column=3, sticky='e')
 
     def clear_entry(self):
         for field in self.fields.values():
@@ -87,22 +97,24 @@ class RowEntry(customtkinter.CTkFrame):
 
         ref = user_entries[0]['ref']
 
-        self.rows[ref] = EntryFrame(self, fields=self.fields, uniform='col')
+        if ref in self.rows.keys():
+            self.rows[ref].destroy()
+
+        self.rows[ref] = EntryFrame(self, user_entries=user_entries, uniform='col',
+                                    tag_suggestions=self.tag_suggestions,
+                                    on_edit=lambda: self._edit_event(ref, user_entries))
         self.rows[ref].grid(row=self.row_index, column=0, columnspan=len(self.fields), sticky='ew', pady=5)
-        self.rows[ref].draw(user_entries)
+        self.rows[ref].draw()
 
         self.row_index += 1
 
         if self.on_enter is not None:
             self.on_enter(user_entries)
 
-    def _draw_label_row(self, parent, row, grid_row):
-        label_row = []
-        for column, (key, value) in enumerate(row.items()):
-            label = customtkinter.CTkLabel(parent, text=value)
-            label.grid(row=grid_row, column=column, sticky='w', padx=5, pady=1)
-            label_row.append(label)
-        return label_row
+    def _edit_event(self, ref, user_entries):
+        self.rows[ref].draw()
+        if self.on_edit is not None:
+            self.on_edit(user_entries)
 
     def _container_config(self, container):
         container.grid_columnconfigure(list(range(len(self.fields))), weight=1, uniform='col')
@@ -121,24 +133,80 @@ class RowEntry(customtkinter.CTkFrame):
 
 
 class EntryFrame(customtkinter.CTkFrame):
-    def __init__(self, master, fields=None, uniform=None, **kwargs):
+    def __init__(self, master, user_entries=None, uniform=None, tag_suggestions=None, on_edit=None, **kwargs):
         super().__init__(master, **kwargs)
 
         self.label_rows = []
 
-        if fields is None:
+        if user_entries is None:
             return
 
-        self.grid_columnconfigure(list(range(len(fields))), weight=1, uniform=uniform)
-        self.grid_columnconfigure(list(fields.keys()).index('Description'), weight=5, uniform=uniform)
-        self.grid_columnconfigure(list(fields.keys()).index('Tags'), weight=5, uniform=uniform)
+        self.user_entries = user_entries
+        self.tag_suggestions = tag_suggestions
+        self.on_edit = on_edit
 
-    def draw(self, user_entries):
-        for grid_row, row in enumerate(user_entries):
+        self.grid_columnconfigure(list(range(len(user_entries[0]))), weight=1, uniform=uniform)
+        self.grid_columnconfigure(list(user_entries[0].keys()).index('Description'), weight=5, uniform=uniform)
+        self.grid_columnconfigure(list(user_entries[0].keys()).index('Tags'), weight=5, uniform=uniform)
+
+        self.edit_button = customtkinter.CTkButton(self, text="Edit", command=self.show_edit)
+        self.bind("<Enter>", self.show_edit_button)
+        self.bind("<Leave>", self.start_button_timer)
+        self.edit_button.bind("<Enter>", self.stop_button_timer)
+        self.edit_button.bind("<Leave>", self.start_button_timer)
+
+        self.button_timeout = 0
+        self.hide = None
+
+    def draw(self):
+        for row in self.label_rows:
+            for label in row:
+                label.destroy()
+        self.label_rows = []
+
+        for grid_row, row in enumerate(self.user_entries):
             label_row = []
             for grid_column, (key, value) in enumerate(row.items()):
                 label = customtkinter.CTkLabel(self, text=value)
-                label.grid(row=grid_row, column=grid_column, sticky='w', padx=5, pady=1)
+                label.grid(row=grid_row, column=grid_column, sticky='w', padx=5)
+
                 label_row.append(label)
 
             self.label_rows.append(label_row)
+
+    def show_edit(self):
+        key_opts = {
+                "ref": {EditPopup.READ_ONLY: True},
+                "Tags": {
+                    EditPopup.CUSTOM_ENTRY: self._create_AutoSuggestTagEntry,
+                    EditPopup.GET_KWARGS: {"key_only": True},
+                    EditPopup.ARRAY_OUTPUT: True,
+                    }
+                }
+        EditPopup(self, edit_vars=self.user_entries, on_edit=self._edit_event, key_opts=key_opts)
+
+    def show_edit_button(self, event):
+        self.edit_button.place(relx=0.997, rely=0.5, relwidth=0.1, relheight=0.8, anchor='e')
+        self.stop_button_timer(event)
+
+    def hide_edit_button(self, event):
+        self.edit_button.place_forget()
+
+    def start_button_timer(self, event):
+        self.stop_button_timer(event)
+        self.hide = self.after(self.button_timeout, lambda: self.hide_edit_button(event))
+
+    def stop_button_timer(self, event):
+        if self.hide is not None:
+            self.after_cancel(self.hide)
+
+    def _edit_event(self):
+        if self.on_edit is not None:
+            self.on_edit()
+
+    def _create_AutoSuggestTagEntry(self, container):
+        if self.tag_suggestions is None:
+            return None
+        return AutoSuggestTagEntry(container, suggestions=self.tag_suggestions,
+                                   tag_selection_options=('', ' - 1', ' - 2'),
+                                   banned_tags={'Automatic': 'Tag reserved for classifier'})
