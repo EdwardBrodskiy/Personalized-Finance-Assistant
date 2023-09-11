@@ -26,11 +26,12 @@ def extract_tags(series):
     return only_tags
 
 
-def ensure_dir_exists(filepath):
-    directory = os.path.dirname(filepath)
-    if not os.path.exists(directory):
+def ensure_dir_exists(path, is_file=False):
+    if is_file:
+        dirpath = os.path.dirname(path)
+    if not os.path.exists(dirpath):
         try:
-            os.makedirs(directory)
+            os.makedirs(dirpath)
         except OSError as exc:  # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise

@@ -87,7 +87,7 @@ class Menu(customtkinter.CTkFrame):
 
     def on_change(self, key):
         path = os.path.join('app_storage', 'menu_states', f'{self.save_key}.json')
-        ensure_dir_exists(path)
+        ensure_dir_exists(path, is_file=True)
         with open(path, 'w+') as file:
             json.dump(self.serialize(), file, indent=2)
 
@@ -96,7 +96,7 @@ class Menu(customtkinter.CTkFrame):
 
     def _load_from_json(self):
         path = os.path.join('app_storage', 'menu_states', f'{self.save_key}.json')
-        ensure_dir_exists(path)
+        ensure_dir_exists(path, is_file=True)
         try:
             with open(path) as file:
                 load_data = json.load(file)

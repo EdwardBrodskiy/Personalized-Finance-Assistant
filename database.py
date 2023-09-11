@@ -109,7 +109,7 @@ class DataBase:
         if len(new_items):
             # Load and back-up
             previous_path = os.path.join(self.__path, f'previous_{where}.csv')
-            ensure_dir_exists(previous_path)
+            ensure_dir_exists(previous_path, is_file=True)
             old_items.to_csv(previous_path)
 
             # Merge and Save
@@ -117,7 +117,7 @@ class DataBase:
 
             new_database.index.name = 'key'
             path = os.path.join(self.__path, f'{where}.csv')
-            ensure_dir_exists(path)
+            ensure_dir_exists(path, is_file=True)
             new_database.to_csv(path)
 
             logging.info(f'Saved {where} with {len(new_items)} new rows')
