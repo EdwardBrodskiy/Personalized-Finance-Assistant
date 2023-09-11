@@ -27,6 +27,7 @@ def extract_tags(series):
 
 
 def ensure_dir_exists(path, is_file=False):
+    dirpath = path
     if is_file:
         dirpath = os.path.dirname(path)
     if not os.path.exists(dirpath):
